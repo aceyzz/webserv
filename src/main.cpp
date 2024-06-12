@@ -19,6 +19,7 @@ int	main(int argc, char **argv)
 		webserv.printConfigs();
 
 		// init le serveur
+		// gestion des signaux
 		// lancer le serveur
 	}
 	catch (std::exception &e) { return (errorReturn("execption", e.what())); }
