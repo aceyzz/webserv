@@ -10,9 +10,16 @@ int	main(int argc, char **argv)
 		return (1);
 	}
 
-	config.loadConfig("config/config.conf");
-
-	config.printConfigs();
+	try
+	{
+		config.loadConfig("config/config.conf");
+		config.printConfigs();
+	}
+	catch (std::exception &e)
+	{
+		std::cerr << REDD "Error: " RST << e.what() << std::endl;
+		return (1);
+	}
 
 	return (0);
 }

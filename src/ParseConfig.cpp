@@ -13,7 +13,7 @@ void	ParseConfig::loadConfig(std::string path)
 {
     std::ifstream	file(path.c_str());
     if (!file.is_open())
-        throw std::runtime_error("Error: could not open file " + path);
+        throw std::runtime_error("could not open file " + path);
     
     std::string					line;
     std::string					currentConfig;
@@ -40,6 +40,8 @@ void	ParseConfig::loadConfig(std::string path)
 
     for (size_t i = 0; i < configs.size(); i++)
         parseEachConfig(configs[i]);
+	
+	checkConfigs();
 }
 
 void ParseConfig::parseEachConfig(std::string config)
@@ -153,6 +155,11 @@ void	ParseConfig::parseLocationBlocks(Config* config, std::vector<std::string> l
                 size_t pos = line.find("cgi_ext") + 7;
                 cgi->setExtension(trimWhitespaces(line.substr(pos, line.find(";", pos) - pos)));
                 isCgiBlock = true;
+            } else if (line.find("return 301") != std::string::npos) {
+                size_t pos = line.find("return 301") + 10;
+                std::string redirPath = trimWhitespaces(line.substr(pos, line.find(";", pos) - pos));
+                route->setRedir(true);
+                route->setRedirPath(redirPath);
             }
         }
 
@@ -220,7 +227,65 @@ void ParseConfig::printConfigs()
 				std::cout << "    " << YLLW << "Cgi path: " << RST << route->getCgiPath() << std::endl;
 				std::cout << "    " << YLLW << "Cgi extension: " << RST << route->getCgiExtension() << std::endl;
 			}
+			std::cout << "    " << YLLW << "Is redir: " << RST << (route->getIsRedir() ? "true" : "false") << std::endl;
+			if (route->getIsRedir())
+				std::cout << "    " << YLLW << "Redir path: " << RST << route->getRedirPath() << std::endl;
         }
         std::cout << std::endl;
     }
+}
+
+void	ParseConfig::checkConfigs()
+{
+	for (size_t i = 0; i < _configs.size(); i++)
+		checkServerConfig(_configs[i]);
+}
+
+void	ParseConfig::checkServerConfig(Config* config)
+{
+	if (config->getPort() == -1)
+		throw std::runtime_error("port not defined in server block -> " + config->getName());
+	if (config->getName().empty())
+		throw std::runtime_error("name not defined in server block -> " + config->getName());
+	if (config->getRoot().empty())
+		throw std::runtime_error("root not defined in server block -> " + config->getName());
+	if (config->getIndex().empty())
+		throw std::runtime_error("index not defined in server block -> " + config->getName());
+	if (config->getMaxBodySize() == -1)
+		throw std::runtime_error("max body size not defined in server block -> " + config->getName());
+	
+	std::vector<Route*> routes = config->getRoutes();
+	for (size_t i = 0; i < routes.size(); i++)
+		checkRouteConfig(routes[i]);
+}
+
+void	ParseConfig::checkRouteConfig(Route *route)
+{
+	if (route->getUri().empty())
+		throw std::runtime_error("uri not defined in location block -> " + route->getRoot());
+	if (route->getRoot().empty())
+		throw std::runtime_error("root not defined in location block -> " + route->getRoot());
+	if (route->getIndex().empty())
+		throw std::runtime_error("index not defined in location block -> " + route->getRoot());
+	if (route->getIsRedir() && route->getRedirPath().empty())
+		throw std::runtime_error("redir path not defined in location block -> " + route->getRoot());
+	if (route->getMethod().empty() && !route->getIsRedir())
+		throw std::runtime_error("methods not defined in location block -> " + route->getRoot());
+	if (route->getCgiEnabled())
+	{
+		if (route->getCgiPath().empty())
+			throw std::runtime_error("cgi path not defined in location block -> " + route->getRoot());
+		if (route->getCgiExtension().empty())
+			throw std::runtime_error("cgi extension not defined in location block -> " + route->getRoot());
+	}
+
+	std::vector<std::string> methods = route->getMethod();
+	for (size_t i = 0; i < methods.size(); i++)
+	{
+		if (methods[i] != "GET" && methods[i] != "POST" && methods[i] != "DELETE" && !methods[i].empty())
+			throw std::runtime_error("invalid method in location block ->  for: " + methods[i]);
+	}
+
+	if (route->getRoot().empty())
+		route->setRoot(route->getRoot());
 }

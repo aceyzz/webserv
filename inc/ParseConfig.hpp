@@ -10,15 +10,26 @@ class	ParseConfig
 	public:
 		ParseConfig() {};
 		~ParseConfig();
-		// Orchestre le parsing de chaque serveur
+
+		// PARTIE 1 : Parsing du fichier de configuration (orchestral)
 		void	loadConfig(std::string path);
-		// Parse chaque serveur
+		// PARTIE 2 : Parsing des configurations (individuel)
 		void	parseEachConfig(std::string config);
-		// Utils parsing
+		// PARTIE 3 : Parsing des blocs de configuration (individuel)
 		void	parseLocationBlocks(Config* config, std::vector<std::string> locationBlocks);
 		void	parseServerConfig(Config* config, std::string remainingConfig);
+
+		// PARTIE 4 : Check de toutes les configurations (orchestral)
+		void	checkConfigs();
+		// PARTIE 5 : Check des configurations (individuel)
+		void	checkServerConfig(Config* config);
+		void	checkRouteConfig(Route *route);
+
 		// Utils secondaires
 		std::string	trimWhitespaces(std::string str);
+
+		// Getters
+		std::vector<Config*>	getConfigs() const { return _configs; };
 		// DEBUG
 		void	printConfigs();
 };
