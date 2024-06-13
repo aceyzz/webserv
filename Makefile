@@ -6,7 +6,7 @@
 #    By: cedmulle <42-xvi@protonmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/02 10:29:14 by cedmulle          #+#    #+#              #
-#    Updated: 2024/06/12 13:45:37 by cedmulle         ###   ########.fr        #
+#    Updated: 2024/06/13 10:00:27 by cedmulle         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ OBJ			= $(addprefix $(OBJ_DIR), $(notdir $(SRC:.cpp=.o)))
 INC			= $(wildcard $(SRC_DIR)*.hpp)
 RM			= rm -rf
 CC			= c++
-CFLAGS		= -std=c++98 -I$(INC_DIR)
+CFLAGS		= -Wall -Werror -Wextra -std=c++98 -I$(INC_DIR) -fsanitize=address -g
 
 RED			= \033[1;31m
 GRN			= \033[1;32m
@@ -37,7 +37,7 @@ RST			= \033[0m
 # **************************************************************************** #
 #									RULES									   #
 # **************************************************************************** #
-all: $(NAME)
+all: stop_webserver $(NAME)
 
 $(NAME): $(OBJ)
 	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
@@ -50,7 +50,7 @@ $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp $(INC)
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "$(GRN)Compiled $(YEL)$<$(RST)"
 
-clean:
+clean: stop_webserver
 	@$(RM) $(OBJ_DIR)
 	@echo "$(RED)Removed $(YEL)objects$(RST)"
 
@@ -61,3 +61,13 @@ fclean: clean
 re: fclean all
 
 .PHONY: all clean fclean re
+
+# **************************************************************************** #
+#							      FONCTIONS									   #
+# **************************************************************************** #
+stop_webserver:
+	@PID_LIST=`pgrep -f './webserv'` ; \
+	for pid in $$PID_LIST ; do \
+		kill -9 $$pid ; \
+	done
+	@echo "$(RED)Stopped $(YEL)webserv$(RST)"

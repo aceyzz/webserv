@@ -95,7 +95,10 @@ void	ParseConfig::parseServerConfig(Config* config, std::string remainingConfig)
             }
         } else if (line.find("name") != std::string::npos) {
             size_t pos = line.find("name") + 4;
-            config->setName(trimWhitespaces(line.substr(pos, line.find(";") - pos)));
+			if (trimWhitespaces(line.substr(pos, line.find(";") - pos)) == "localhost")
+				config->setName("127.0.0.1");
+			else
+            	config->setName(trimWhitespaces(line.substr(pos, line.find(";") - pos)));
         } else if (line.find("root") != std::string::npos) {
             size_t pos = line.find("root") + 4;
             config->setRoot(trimWhitespaces(line.substr(pos, line.find(";") - pos)));
@@ -121,6 +124,26 @@ void	ParseConfig::parseServerConfig(Config* config, std::string remainingConfig)
             config->setAutoindex(line.substr(pos, line.find(";", pos) - pos) == "on");
         }
     }
+	config->addErrorPage(200, "errors/200.html");
+	config->addErrorPage(201, "errors/201.html");
+	config->addErrorPage(204, "errors/204.html");
+	config->addErrorPage(301, "errors/301.html");
+	config->addErrorPage(302, "errors/302.html");
+	config->addErrorPage(303, "errors/303.html");
+	config->addErrorPage(307, "errors/307.html");
+	config->addErrorPage(400, "errors/400.html");
+	config->addErrorPage(401, "errors/401.html");
+	config->addErrorPage(403, "errors/403.html");
+	config->addErrorPage(404, "errors/404.html");
+	config->addErrorPage(405, "errors/405.html");
+	config->addErrorPage(413, "errors/413.html");
+	config->addErrorPage(414, "errors/414.html");
+	config->addErrorPage(415, "errors/415.html");
+	config->addErrorPage(429, "errors/429.html");
+	config->addErrorPage(500, "errors/500.html");
+	config->addErrorPage(501, "errors/501.html");
+	config->addErrorPage(502, "errors/502.html");
+	config->addErrorPage(503, "errors/503.html");
 }
 
 void	ParseConfig::parseLocationBlocks(Config* config, std::vector<std::string> locationBlocks)
@@ -213,7 +236,9 @@ void	ParseConfig::checkServerConfig()
 			throw std::runtime_error("index not defined in server block " + config->getName());
 		if (config->getMaxBodySize() == -1)
 			throw std::runtime_error("max body size not defined in server block " + config->getName());
-		
+		if (config->getErrorPages().empty())
+			throw std::runtime_error("error pages not defined in server block " + config->getName());
+
 		std::vector<Route*> routes = config->getRoutes();
 		for (size_t i = 0; i < routes.size(); i++)
 			checkRouteConfig(routes[i]);
