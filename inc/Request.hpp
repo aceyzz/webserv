@@ -26,8 +26,8 @@ class	Request
 		size_t								_bodySize;
 	
 	public:
-		Request(int fd, std::string rawRequest, std::string clientIp) : _fd(fd), _rawRequest(rawRequest), _clientIp(clientIp), _status(RECEIVING), _bodySize(0) {};
-		~Request() {};
+		Request(int fd, std::string clientIp) : _fd(fd), _clientIp(clientIp), _status(RECEIVING), _bodySize(0) {};
+		~Request() { _headers.clear(); };
 
 		// Partie 1 : Parsing Orchestral
 		void	parseRequest(std::string rawRequest);

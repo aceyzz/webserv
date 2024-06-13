@@ -21,77 +21,77 @@ void	Request::printRequest()
 
 void	Request::parseRequest(std::string rawRequest)
 {
-    _rawRequest = rawRequest;
-    
-    std::istringstream stream(rawRequest);
-    std::string line;
-    std::vector<std::string> lines;
+	_rawRequest = rawRequest;
+	
+	std::istringstream stream(rawRequest);
+	std::string line;
+	std::vector<std::string> lines;
 
-    while (std::getline(stream, line))
-    {
-        // Enlever les retours de chariot potentiels
-        if (!line.empty() && line.back() == '\r')
-            line.pop_back();
-        lines.push_back(line);
-    }
+	while (std::getline(stream, line))
+	{
+		// Enlever les retours de chariot potentiels
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
+		lines.push_back(line);
+	}
 
-    if (!lines.empty())
-    {
-        parseRequestLine(lines[0]); // parser la ligne de requête
-        parseHeadersAndBody(lines); // parser les en-têtes et le corps
-    }
+	if (!lines.empty())
+	{
+		parseRequestLine(lines[0]); // parser la ligne de requête
+		parseHeadersAndBody(lines); // parser les en-têtes et le corps
+	}
 }
 
 void	Request::parseRequestLine(const std::string& line)
 {
-    std::istringstream lineStream(line);
-    lineStream >> _method >> _uri >> _versionHTTP;
+	std::istringstream lineStream(line);
+	lineStream >> _method >> _uri >> _versionHTTP;
 
-    // MAJ du statut
-    if (_method.empty() || _uri.empty() || _versionHTTP.empty())
-        _status = ERROR;
-    else
-        _status = RECEIVING;
+	// MAJ du statut
+	if (_method.empty() || _uri.empty() || _versionHTTP.empty())
+		_status = ERROR;
+	else
+		_status = RECEIVING;
 
-    // Mettre à jour le timestamp au moment de la réception de la requête
-    _timestamp = std::time(nullptr);
+	// Mettre à jour le timestamp au moment de la réception de la requête
+	_timestamp = std::time(nullptr);
 }
 
 void	Request::parseHeadersAndBody(const std::vector<std::string>& lines)
 {
-    size_t i = 1; // Ligne suivante après la ligne de requête
+	size_t i = 1; // Ligne suivante après la ligne de requête
 
-    // Parser les en-têtes
-    for (; i < lines.size(); ++i)
-    {
-        const std::string& line = lines[i];
+	// Parser les en-têtes
+	for (; i < lines.size(); ++i)
+	{
+		const std::string& line = lines[i];
 
-        if (line.empty())
-        {
-            ++i;
-            break;
-        }
+		if (line.empty())
+		{
+			++i;
+			break;
+		}
 
-        size_t delimiter = line.find(": ");
-        if (delimiter != std::string::npos)
-        {
-            std::string key = line.substr(0, delimiter);
-            std::string value = line.substr(delimiter + 2);
-            _headers[key] = value;
-        }
-    }
+		size_t delimiter = line.find(": ");
+		if (delimiter != std::string::npos)
+		{
+			std::string key = line.substr(0, delimiter);
+			std::string value = line.substr(delimiter + 2);
+			_headers[key] = value;
+		}
+	}
 
-    // Parser le corps
-    std::ostringstream bodyStream;
-    for (; i < lines.size(); ++i)
-    {
-        bodyStream << lines[i];
-        if (i != lines.size() - 1)
-            bodyStream << "\n";
-    }
-    _body = bodyStream.str();
-    _bodySize = _body.size();
+	// Parser le corps
+	std::ostringstream bodyStream;
+	for (; i < lines.size(); ++i)
+	{
+		bodyStream << lines[i];
+		if (i != lines.size() - 1)
+			bodyStream << "\n";
+	}
+	_body = bodyStream.str();
+	_bodySize = _body.size();
 
-    // MAJ du statut
-    _status = COMPLETE;
+	// MAJ du statut
+	_status = COMPLETE;
 }

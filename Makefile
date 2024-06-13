@@ -6,7 +6,7 @@
 #    By: cedmulle <42-xvi@protonmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/02 10:29:14 by cedmulle          #+#    #+#              #
-#    Updated: 2024/06/13 10:00:27 by cedmulle         ###   ########.fr        #
+#    Updated: 2024/06/13 15:49:47 by cedmulle         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -71,3 +71,11 @@ stop_webserver:
 		kill -9 $$pid ; \
 	done
 	@echo "$(RED)Stopped $(YEL)webserv$(RST)"
+
+kill:
+	@read -p "Donner les numeros de ports des process a kill (séparé par un espace): " ports; \
+	for port in $$ports; do \
+		echo "$(GRY)Searching and terminating processes on port $$port...$(RST)"; \
+		lsof -i :$$port -t | xargs -r kill; \
+	done; \
+	echo "$(GRN)Processes terminated.$(RST)"

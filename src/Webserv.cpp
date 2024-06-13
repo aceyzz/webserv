@@ -8,6 +8,9 @@ Webserver::~Webserver()
 	for (size_t i = 0; i < _clientSockets.size(); i++)
 		if (_clientSockets[i] != NULL)
 			delete _clientSockets[i];
+	for (std::map<int, Request*>::iterator it = _requests.begin(); it != _requests.end(); it++)
+		if (it->second != NULL)
+			delete it->second;
 	if (_kqueue != -1)
 		close(_kqueue);
 }
@@ -80,6 +83,9 @@ void	Webserver::initServer()
 		Socket* socket = new Socket(SERVER, AF_INET, SOCK_STREAM, 0, config->getPort(), config->getName());
 		_serverSockets.push_back(socket);
 
+		if (fcntl(socket->getFD(), F_SETFL, O_NONBLOCK) == -1)
+			throw std::runtime_error("fcntl() failed: " + std::string(strerror(errno)));
+
 		struct kevent	event;
 		EV_SET(&event, socket->getFD(), EVFILT_READ, EV_ADD, 0, 0, NULL);
 		if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
@@ -98,12 +104,16 @@ void	Webserver::initServer()
 void	Webserver::runServer()
 {
 	std::vector<struct kevent> events(MAX_EVENTS);
+	int	nbRequest = 0;
+	int	end = 2;
 
-	while (g_signal)
+	while (g_signal && (nbRequest < end))
 	{
 		int nbEvents = kevent(_kqueue, NULL, 0, events.data(), MAX_EVENTS, NULL);
 		if (nbEvents == -1 && g_signal)
 			throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
+
+		nbRequest++;
 
 		for (int i = 0; i < nbEvents; i++)
 		{
@@ -157,7 +167,7 @@ void	Webserver::handleRequest(int fd)
 	std::string rawRequest;
 	int bytesRead;
 
-	// Récupérer la requête existante ou en créer une nouvelle si nécessaire
+	// Récupérer la requête existante ou en créer une nouvelle
 	Request* request = getRequest(fd);
 	if (request == nullptr)
 	{
@@ -178,7 +188,7 @@ void	Webserver::handleRequest(int fd)
 		}
 
 		std::string clientIp = clientSocket->getIp();
-		request = new Request(fd, "", clientIp);
+		request = new Request(fd, clientIp);
 		_requests[fd] = request;
 	}
 
