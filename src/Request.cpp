@@ -2,7 +2,7 @@
 
 void	Request::printRequest()
 {
-	std::cout << GOLD "- REQUEST- " << std::endl;
+	std::cout << GOLD "- REQUEST - " << std::endl;
 	std::cout << CYAN "- RawRequest:\n" RST << _rawRequest << std::endl;
 	std::cout << CYAN "- FD: " RST << _fd << std::endl;
 	std::cout << CYAN "- Method: " RST << _method << std::endl;

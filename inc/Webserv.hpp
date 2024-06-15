@@ -10,6 +10,7 @@ class	Route;
 class	Cgi;
 class	Socket;
 class	Request;
+class	Response;
 
 #include "ParseConfig.hpp"
 #include "Config.hpp"
@@ -17,19 +18,22 @@ class	Request;
 #include "Route.hpp"
 #include "Socket.hpp"
 #include "Request.hpp"
+#include "Response.hpp"
 
 class	Webserver
 {
 	private:
-		int						_kqueue;
-		std::vector<Config*>	_configs;
-		std::map<int, Socket*>	_serverSockets;
-		std::map<int, Socket*>	_clientSockets;
-		std::map<int, Request*>	_requests;
+		int							_kqueue;
+		std::vector<Config*>		_configs;
+		std::map<int, Socket*>		_serverSockets;
+		std::map<int, Socket*>		_clientSockets;
+		std::map<int, Request*>		_requests;
+		std::map<int, Response*>	_responses;
+		std::map<int, Config*>		_configsByPort;
 	
 	public:
 		// Constructors & destructors
-		Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config) {};
+		Webserver(std::vector<Config*> config);
 		~Webserver();
 
 		// Getters
@@ -51,18 +55,21 @@ class	Webserver
 
 		// Orchestrales pour Request
 		void	parseAndHandleRequest(int fd);
-
 		// Methodes pour Request
 		bool	receiveRequest(int fd);
 
 		// Clean
 		void	closeClient(int fd);
 
+		// Orchestrales pour Response
+		bool	responseManager(int clientFD);
+
 		// Utils
 		bool	isServerSocket(int fd);
 		void	acceptNewClient(int serverFD);
-
+		Config*	getConfigForClient(int clientFD);
 		// Debug
 		void	printConfigs();
 		void	printSockets();
+		void	printConfigByPort();
 };

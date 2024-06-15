@@ -1,5 +1,11 @@
 #include "Webserv.hpp"
 
+Webserver::Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config)
+{
+	for (size_t i = 0; i < _configs.size(); i++)
+		_configsByPort[_configs[i]->getPort()] = _configs[i];
+}
+
 Webserver::~Webserver()
 {
 	for (size_t i = 0; i < _serverSockets.size(); i++)
@@ -58,6 +64,20 @@ void	Webserver::printConfigs()
 		}
 		std::cout << std::endl;
 	}
+}
+
+void	Webserver::printConfigByPort()
+{
+	std::cout << std::endl;
+	std::cout << GOLD << "PRINT CONFIG BY PORT (CLASS WEBSERVER):" << RST << std::endl;
+	for (std::map<int, Config*>::iterator it = _configsByPort.begin(); it != _configsByPort.end(); it++)
+	{
+		Config* config = it->second;
+		std::cout << GRY2 "Address of config: " << config << std::endl;
+		std::cout << CYAN << "Port: " << RST << config->getPort() << std::endl;
+		std::cout << CYAN << "Name: " << RST << config->getName() << std::endl;
+	}
+	std::cout << std::endl;
 }
 
 void	Webserver::printSockets()
@@ -149,7 +169,7 @@ void	Webserver::runServer()
 				}
 				else if (events[i].filter == EVFILT_WRITE)
 				{
-				    // if (sendResponse(events[i].ident))
+				    if (responseManager(events[i].ident))
 				        closeClient(events[i].ident);
 				}
 			}
@@ -229,12 +249,14 @@ void	Webserver::acceptNewClient(int serverFD)
 		close(clientFD);
 		return;
 	}
+
 	// On ajoute le client à la liste des sockets clients
 	Socket* socket = new Socket(CLIENT, AF_INET, clientFD, inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+	socket->setServerPort(_serverSockets[serverFD]->getPort());
 	_clientSockets[clientFD] = socket;
 
 	if (DEBUG)
-		std::cout << "New client connected: " << socket->getIp() << ":" << socket->getPort() << std::endl;
+		std::cout << "New client connected: " << socket->getIp() << ":" << socket->getServerPort()  << " with fd: " << socket->getFD() << std::endl;
 }
 
 void	Webserver::parseAndHandleRequest(int fd)
@@ -267,6 +289,48 @@ void	Webserver::parseAndHandleRequest(int fd)
 	}
 }
 
+bool	Webserver::responseManager(int clientFD)
+{
+	// Obtenir la requete du client
+	Request*	request = _requests[clientFD];
+	if (!request)
+	{
+		std::cerr << "Request of client not found" << std::endl;
+		return (false);
+	}
+
+	// Obtenir la configuration correspondante
+	Config*	config = getConfigForClient(clientFD);
+	if (!config)
+	{
+		std::cerr << "Config for client not found" << std::endl;
+		return (false);
+	}
+
+	// Creer la reponse
+	Response*	response = _responses[clientFD];
+	if (!_responses[clientFD])
+	{
+		response = new Response(request, config, _clientSockets[clientFD]);
+		_responses[clientFD] = response;
+	}
+
+	// Construction de la reponse : si terminée, on l'envoie, sinon on la garde en mémoire
+	// if (response->buildResponse())
+	// {
+	// 	sendResponse(response);
+	// 	_responses.erase(clientFD);
+	// 	delete response;
+	// 	return (true);
+	// }
+
+	if (DEBUG)
+		response->printResponse();
+
+	_responses[clientFD] = response;
+	return (false);
+}
+
 void	Webserver::closeClient(int fd)
 {
 	if (fd != -1)
@@ -276,4 +340,22 @@ void	Webserver::closeClient(int fd)
 
 	if (DEBUG)
 		std::cout << "Client closed: " << fd << std::endl;
+}
+
+Config*	Webserver::getConfigForClient(int clientFD)
+{
+	Socket* clientSocket = _clientSockets[clientFD];
+	if (!clientSocket)
+	{
+		std::cerr << "Client socket not found for FD: " << clientFD << std::endl;
+		return (NULL);
+	}
+
+	int	serverPort = clientSocket->getServerPort();
+
+	Config* config = _configsByPort[serverPort];
+	if (!config)
+		return (NULL);
+
+	return (config);
 }

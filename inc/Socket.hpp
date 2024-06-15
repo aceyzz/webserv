@@ -16,6 +16,7 @@ class	Socket
 		sockaddr_in	_addr;
 		int			_port;
 		std::string	_ip;
+		int			_serverPort;
 
 	public:
 		Socket();
@@ -30,6 +31,7 @@ class	Socket
 		sockaddr_in	getAddr() const { return (_addr); };
 		int			getPort() const { return (_port); };
 		std::string	getIp() const { return (_ip); };
+		int			getServerPort() const { return (_serverPort); };
 
 		// Setters
 		void	setType(eSocketType type) { _type = type; };
@@ -37,6 +39,7 @@ class	Socket
 		void	setAddr(sockaddr_in addr) { _addr = addr; };
 		void	setPort(int port) { _port = port; };
 		void	setIp(std::string ip) { _ip = ip; };
+		void	setServerPort(int port) { _serverPort = port; };
 
 		// Methods
 		void	bindSocket();

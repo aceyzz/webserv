@@ -38,4 +38,7 @@ class	Config
 		void	setAutoindex(bool autoindex) { _autoindex = autoindex; };
 		void	addRoute(Route* route) { _routes.push_back(route); };
 		void	setMaxBodySize(int maxBodySize) { _maxBodySize = maxBodySize; };
+
+		// Debug
+		void	printConfig();
 };

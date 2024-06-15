@@ -24,7 +24,7 @@ class	Request
 		std::time_t							_timestamp;
 		RequestStatus						_status;
 		size_t								_bodySize;
-	
+
 	public:
 		Request(int fd, std::string clientIp) : _fd(fd), _clientIp(clientIp), _status(RECEIVING), _bodySize(0) {};
 		~Request() { _headers.clear(); };

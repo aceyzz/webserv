@@ -37,4 +37,7 @@ class	Route
 		std::string					getCgiExtension() { return _cgi->getExtension(); };
 		bool						getIsRedir() { return _isRedir; };
 		std::string					getRedirPath() { return _redirPath; };
+
+		// Debug
+		void	printRoute();
 };
