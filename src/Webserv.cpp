@@ -328,7 +328,7 @@ bool	Webserver::responseManager(int clientFD)
 		response->printResponse();
 
 	_responses[clientFD] = response;
-	return (false);
+	return (false);// mettre a true pour debug
 }
 
 void	Webserver::closeClient(int fd)
