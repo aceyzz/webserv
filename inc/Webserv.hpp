@@ -23,34 +23,44 @@ class	Webserver
 	private:
 		int						_kqueue;
 		std::vector<Config*>	_configs;
-		std::vector<Socket*>	_serverSockets;
-		std::vector<Socket*>	_clientSockets;
+		std::map<int, Socket*>	_serverSockets;
+		std::map<int, Socket*>	_clientSockets;
 		std::map<int, Request*>	_requests;
 	
 	public:
 		// Constructors & destructors
-		Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config)  {};
+		Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config) {};
 		~Webserver();
 
 		// Getters
 		std::vector<Config*>	getServersConfig() { return (_configs); };
-		std::vector<Socket*>	getServerSockets() { return (_serverSockets); };
-		std::vector<Socket*>	getClientSockets() { return (_clientSockets); };
+		std::map<int, Socket*>	getServerSockets() { return (_serverSockets); };
+		std::map<int, Socket*>	getClientSockets() { return (_clientSockets); };
 		std::map<int, Request*>	getRequests() { return (_requests); };
 		Request					*getRequest(int fd) { return (_requests[fd]); };
 
 		// Setters
-		void	setServerSockets(std::vector<Socket*> sockets) { _serverSockets = sockets; };
-		void	setClientSockets(std::vector<Socket*> sockets) { _clientSockets = sockets; };
-		void	addServerSocket(Socket *socket) { _serverSockets.push_back(socket); };
-		void	addClientSocket(Socket *socket) { _clientSockets.push_back(socket); };
+		void	setServerSockets(std::map<int, Socket*> sockets) { _serverSockets = sockets; };
+		void	setClientSockets(std::map<int, Socket*> sockets) { _clientSockets = sockets; };
+		void	addServerSocket(Socket *socket);
+		void	addClientSocket(Socket *socket);
 
 		// Methods
 		void	initServer();
 		void	runServer();
 
 		// Orchestrales pour Request
-		void	handleRequest(int fd);
+		void	parseAndHandleRequest(int fd);
+
+		// Methodes pour Request
+		bool	receiveRequest(int fd);
+
+		// Clean
+		void	closeClient(int fd);
+
+		// Utils
+		bool	isServerSocket(int fd);
+		void	acceptNewClient(int serverFD);
 
 		// Debug
 		void	printConfigs();

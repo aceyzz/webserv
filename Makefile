@@ -6,7 +6,7 @@
 #    By: cedmulle <42-xvi@protonmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/02 10:29:14 by cedmulle          #+#    #+#              #
-#    Updated: 2024/06/13 15:49:47 by cedmulle         ###   ########.fr        #
+#    Updated: 2024/06/15 09:41:16 by cedmulle         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -79,3 +79,5 @@ kill:
 		lsof -i :$$port -t | xargs -r kill; \
 	done; \
 	echo "$(GRN)Processes terminated.$(RST)"
+
+restart: stop_webserver kill all

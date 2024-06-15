@@ -36,6 +36,26 @@ class	Request
 		// Partie 3 : Parsing des en-têtes et du corps
 		void	parseHeadersAndBody(const std::vector<std::string>& lines);
 
+		// Getters
+		int									getFD() const { return (_fd); };
+		std::string							getRawRequest() const { return (_rawRequest); };
+		std::string							getMethod() const { return (_method); };
+		std::string							getUri() const { return (_uri); };
+		std::string							getVersionHTTP() const { return (_versionHTTP); };
+		std::map<std::string, std::string>	getHeaders() const { return (_headers); };
+		std::string							getBody() const { return (_body); };
+		std::string							getParam() const { return (_param); };
+		std::string							getClientIp() const { return (_clientIp); };
+		std::time_t							getTimestamp() const { return (_timestamp); };
+		RequestStatus						getStatus() const { return (_status); };
+		size_t								getBodySize() const { return (_bodySize); };
+
+		// Setters
+		void	setStatus(RequestStatus status) { _status = status; };
+
+		// Utils
+		void	appendRawRequest(std::string rawRequest) { _rawRequest.append(rawRequest); };
+
 		// Debug
 		void	printRequest();
 };

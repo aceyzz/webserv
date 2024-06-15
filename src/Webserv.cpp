@@ -70,6 +70,21 @@ void	Webserver::printSockets()
 	}
 }
 
+bool	Webserver::isServerSocket(int fd)
+{
+	return (_serverSockets.find(fd) != _serverSockets.end());
+}
+
+void	Webserver::addServerSocket(Socket *socket)
+{
+	_serverSockets[socket->getFD()] = socket;
+}
+
+void	Webserver::addClientSocket(Socket *socket)
+{
+	_clientSockets[socket->getFD()] = socket;
+}
+
 void	Webserver::initServer()
 {
 	_kqueue = kqueue();
@@ -81,7 +96,7 @@ void	Webserver::initServer()
 	{
 		Config* config = _configs[i];
 		Socket* socket = new Socket(SERVER, AF_INET, SOCK_STREAM, 0, config->getPort(), config->getName());
-		_serverSockets.push_back(socket);
+		_serverSockets.insert(std::pair<int, Socket*>(socket->getFD(), socket));
 
 		if (fcntl(socket->getFD(), F_SETFL, O_NONBLOCK) == -1)
 			throw std::runtime_error("fcntl() failed: " + std::string(strerror(errno)));
@@ -93,9 +108,9 @@ void	Webserver::initServer()
 	}
 
 	// Bind et listen des sockets serveurs
-	for (size_t i = 0; i < _serverSockets.size(); i++)
+	for (std::map<int, Socket*>::iterator it = _serverSockets.begin(); it != _serverSockets.end(); ++it)
 	{
-		Socket* socket = _serverSockets[i];
+		Socket* socket = it->second;
 		socket->bindSocket();
 		socket->listenSocket();
 	}
@@ -103,110 +118,162 @@ void	Webserver::initServer()
 
 void	Webserver::runServer()
 {
-	std::vector<struct kevent> events(MAX_EVENTS);
-	int	nbRequest = 0;
-	int	end = 2;
-
-	while (g_signal && (nbRequest < end))
+	while (g_signal)
 	{
-		int nbEvents = kevent(_kqueue, NULL, 0, events.data(), MAX_EVENTS, NULL);
+		std::vector<struct kevent> events(MAX_EVENTS);
+		int nbEvents = kevent(_kqueue, NULL, 0, &events[0], MAX_EVENTS, NULL);
 		if (nbEvents == -1 && g_signal)
 			throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
-
-		nbRequest++;
-
+		
 		for (int i = 0; i < nbEvents; i++)
 		{
-			int eventFD = events[i].ident;
-			int eventFilter = events[i].filter;
-
+			// Si EV_ERROR (erreur dans kevent) alors on continue
 			if (events[i].flags & EV_ERROR)
 			{
-				std::cerr << "Error in kevent: " << strerror(events[i].data) << std::endl;
+				std::cerr << "Error in kevent" << std::endl;
 				continue;
 			}
 
-			bool isServerSocket = false;
-
-			for (std::vector<Socket*>::iterator it = _serverSockets.begin(); it != _serverSockets.end(); it++)
+			// Si c'est un socket serveur
+			if (isServerSocket(events[i].ident))
 			{
-				Socket* socket = *it;
-				if (eventFD == socket->getFD() && eventFilter == EVFILT_READ)
-				{
-					int clientFD = socket->acceptSocket(eventFD);
-					if (clientFD == -1)
-						throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
-					Socket* clientSocket = new Socket(CLIENT, 0, socket->getPort(), socket->getIp(), clientFD);
-					_clientSockets.push_back(clientSocket);
-
-					struct kevent event;
-					EV_SET(&event, clientFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
-					if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
-						throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
-
-					clientSocket->printSocket();
-					isServerSocket = true;
-					break;
-				}
+				if (events[i].filter == EVFILT_READ)
+					acceptNewClient(events[i].ident);
 			}
-
-			if (!isServerSocket)
+			else
 			{
-				if (eventFilter == EVFILT_READ)
-					handleRequest(eventFD);
-				else if (eventFilter == EVFILT_WRITE)
-					std::cout << "Write event" << std::endl;
+				if (events[i].filter == EVFILT_READ)
+				{
+					if (receiveRequest(events[i].ident))
+						parseAndHandleRequest(events[i].ident);
+				}
+				else if (events[i].filter == EVFILT_WRITE)
+				{
+				    // if (sendResponse(events[i].ident))
+				        closeClient(events[i].ident);
+				}
 			}
 		}
 	}
 }
 
-void	Webserver::handleRequest(int fd)
+bool	Webserver::receiveRequest(int clientFD)
 {
-	char buffer[1024];
-	std::string rawRequest;
-	int bytesRead;
+	char	buffer[1024];
+	ssize_t	nbBytes = recv(clientFD, buffer, sizeof(buffer) - 1, 0);
 
-	// Récupérer la requête existante ou en créer une nouvelle
-	Request* request = getRequest(fd);
-	if (request == nullptr)
+	if (nbBytes <= 0)
 	{
-		Socket* clientSocket = nullptr;
-		for (std::vector<Socket*>::iterator it = _clientSockets.begin(); it != _clientSockets.end(); it++)
-		{
-			if ((*it)->getFD() == fd)
-			{
-				clientSocket = *it;
-				break;
-			}
-		}
-
-		if (clientSocket == nullptr)
-		{
-			std::cerr << "Client socket not found" << std::endl;
-			return;
-		}
-
-		std::string clientIp = clientSocket->getIp();
-		request = new Request(fd, clientIp);
-		_requests[fd] = request;
+		// Error handling or connection closed by client
+		close(clientFD);
+		_requests.erase(clientFD);
+		_clientSockets.erase(clientFD);
+		return (false);
 	}
 
-	// Lire les données en fragments
-	while ((bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0)) > 0)
+	buffer[nbBytes] = '\0';
+	Request*	request = _requests[clientFD];
+	if (!request)
 	{
-		buffer[bytesRead] = '\0';
-		rawRequest.append(buffer);
+		// Find the client socket based on clientFD
+		Socket*	clientSocket = _clientSockets[clientFD];
+		if (!clientSocket)
+		{
+			std::cerr << "Client socket not found for FD: " << clientFD << std::endl;
+			return (false);
+		}
+
+		request = new Request(clientFD, clientSocket->getIp());
+		_requests[clientFD] = request;
 	}
 
-	if (bytesRead == -1 && errno != EAGAIN && errno != EWOULDBLOCK)
+	request->appendRawRequest(buffer);
+
+	if (nbBytes == 0 || static_cast<size_t>(nbBytes) < sizeof(buffer) - 1)
 	{
-		std::cerr << "Error in recv: " << strerror(errno) << std::endl;
+		request->setStatus(COMPLETE);
+		return (true);
+	}
+
+	if (DEBUG)
+		std::cout << "Received " << nbBytes << " bytes from client: " << request->getClientIp() << " (FD: " << clientFD << ")" << std::endl;
+
+	return (false);
+}
+
+void	Webserver::acceptNewClient(int serverFD)
+{
+	sockaddr_in	clientAddr;
+	socklen_t	clientAddrLen = sizeof(clientAddr);
+
+	// On accepte la connexion du client
+	int			clientFD = accept(serverFD, (struct sockaddr*)&clientAddr, &clientAddrLen);
+	if (clientFD == -1)
+	{
+		std::cerr << "accept() failed: " << strerror(errno) << std::endl;
 		return;
 	}
+	// On met le client en mode non-bloquant
+	if (fcntl(clientFD, F_SETFL, O_NONBLOCK) == -1)
+	{
+		std::cerr << "fcntl() failed: " << strerror(errno) << std::endl;
+		close(clientFD);
+		return;
+	}
+	// On ajoute le client au kqueue
+	struct kevent event;
+	EV_SET(&event, clientFD, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
+	{
+		std::cerr << "kevent() failed: " << strerror(errno) << std::endl;
+		close(clientFD);
+		return;
+	}
+	// On ajoute le client à la liste des sockets clients
+	Socket* socket = new Socket(CLIENT, AF_INET, clientFD, inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
+	_clientSockets[clientFD] = socket;
 
-	request->parseRequest(rawRequest);
-	
+	if (DEBUG)
+		std::cout << "New client connected: " << socket->getIp() << ":" << socket->getPort() << std::endl;
+}
+
+void	Webserver::parseAndHandleRequest(int fd)
+{
+	Request* request = _requests[fd];
+
+	if (!request)
+	{
+		std::cerr << "Request not found" << std::endl;
+		close(fd);
+		_requests.erase(fd);
+		return ;
+	}
+
+	// Parser la requete et init des valeurs de la classe Request
+	request->parseRequest(request->getRawRequest());
+
 	if (DEBUG)
 		request->printRequest();
+
+	// Mise a jour de l'evenement kqueue pour l'ecriture
+	struct kevent	event;
+	EV_SET(&event, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
+	if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
+	{
+		std::cerr << "kevent() failed: " << strerror(errno) << std::endl;
+		close(fd);
+		_requests.erase(fd);
+		return ;
+	}
+}
+
+void	Webserver::closeClient(int fd)
+{
+	if (fd != -1)
+		close(fd);
+	_requests.erase(fd);
+	_clientSockets.erase(fd);
+
+	if (DEBUG)
+		std::cout << "Client closed: " << fd << std::endl;
 }
