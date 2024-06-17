@@ -43,3 +43,28 @@ void	Config::printConfig()
 		_routes[i]->printRoute();
 	std::cout << GOLD "Max body size: " RST << _maxBodySize << std::endl;
 }
+
+void	Config::setErrorMessages()
+{
+	_errorMessages[200] = "OK";
+	_errorMessages[201] = "Created";
+	_errorMessages[204] = "No Content";
+	_errorMessages[301] = "Moved Permanently";
+	_errorMessages[302] = "Found";
+	_errorMessages[303] = "See Other";
+	_errorMessages[307] = "Temporary Redirect";
+	_errorMessages[400] = "Bad Request";
+	_errorMessages[401] = "Unauthorized";
+	_errorMessages[403] = "Forbidden";
+	_errorMessages[404] = "Not Found";
+	_errorMessages[405] = "Method Not Allowed";
+	_errorMessages[413] = "Payload Too Large";
+	_errorMessages[414] = "URI Too Long";
+	_errorMessages[415] = "Unsupported Media Type";
+	_errorMessages[429] = "Too Many Requests";
+	_errorMessages[500] = "Internal Server Error";
+	_errorMessages[501] = "Not Implemented";
+	_errorMessages[502] = "Bad Gateway";
+	_errorMessages[503] = "Service Unavailable";
+	_errorMessages[505] = "HTTP Version Not Supported";
+}

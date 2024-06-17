@@ -13,9 +13,10 @@ class	Config
 		bool						_autoindex;
 		std::vector<Route*>			_routes;
 		int							_maxBodySize;
+		std::map<int, std::string>	_errorMessages;
 	
 	public:
-		Config() : _port(-1), _autoindex(false), _maxBodySize(-1) {};
+		Config() : _port(-1), _autoindex(false), _maxBodySize(-1) { setErrorMessages(); };
 		~Config();
 		// Getters
 		std::string					getName() { return _name; };
@@ -28,6 +29,7 @@ class	Config
 		std::vector<Route*>			getRoutes() { return _routes; };
 		Route*						getRoute(std::string uri);
 		int							getMaxBodySize() { return _maxBodySize; };
+		std::string					getErrorMessage(int code) { return _errorMessages[code]; };
 
 		// Setters
 		void	setName(std::string name) { _name = name; };
@@ -38,6 +40,7 @@ class	Config
 		void	setAutoindex(bool autoindex) { _autoindex = autoindex; };
 		void	addRoute(Route* route) { _routes.push_back(route); };
 		void	setMaxBodySize(int maxBodySize) { _maxBodySize = maxBodySize; };
+		void	setErrorMessages();
 
 		// Debug
 		void	printConfig();

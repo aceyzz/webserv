@@ -5,22 +5,28 @@
 enum eResponseStatus
 {
 	WRITING = 69,
+	READY,
 	SENT
 };
+
+#define HTTP_VERSION "HTTP/1.1"
 
 class	Response
 {
 	private:
 		eResponseStatus						_status;
-		int									_HTTPcode;
+		
 		Request*							_request;
 		Config*								_config;
 		Socket*								_clientSocket;
 
-		std::string							_resultResponse;
-		size_t								_bytesSent;
+		int									_HTTPcode;
+		std::string							_statusMessage;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
+		
+		std::string							_resultResponse;		
+		size_t								_bytesSent;
 
 	public:
 		Response(Request* request, Config* config, Socket* clientSocket);
@@ -33,8 +39,20 @@ class	Response
 		size_t								getBytesSent() const { return (_bytesSent); };
 		std::map<std::string, std::string>	getHeaders() const { return (_headers); };
 		std::string							getBody() const { return (_body); };
+		std::string							getStatusMessage() const { return (_statusMessage); };
+
+		// Methods
+		void	interpretRequest();
+
+		void	handleGet(Route* route);
+
+		void	buildErrorPage(int errorCode);
+
+		void	formatResponseToStr();
 
 		// Debug
 		void	printResponse();
 
 };
+
+std::string	strToHtml(std::string str);

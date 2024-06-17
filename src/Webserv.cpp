@@ -154,7 +154,6 @@ void	Webserver::runServer()
 				continue;
 			}
 
-			// Si c'est un socket serveur
 			if (isServerSocket(events[i].ident))
 			{
 				if (events[i].filter == EVFILT_READ)
@@ -315,20 +314,20 @@ bool	Webserver::responseManager(int clientFD)
 		_responses[clientFD] = response;
 	}
 
-	// Construction de la reponse : si terminée, on l'envoie, sinon on la garde en mémoire
-	// if (response->buildResponse())
-	// {
-	// 	sendResponse(response);
-	// 	_responses.erase(clientFD);
-	// 	delete response;
-	// 	return (true);
-	// }
+	_responses[clientFD] = response;
+	_responses[clientFD]->interpretRequest();
 
 	if (DEBUG)
 		response->printResponse();
 
-	_responses[clientFD] = response;
-	return (false);// mettre a true pour debug
+	if (_responses[clientFD]->getStatus() == READY)
+	{
+		// sendResponse(_responses[clientFD]);
+		_responses.erase(clientFD);
+		return (true);
+	}
+
+	return (true);// mettre a true pour debug
 }
 
 void	Webserver::closeClient(int fd)
