@@ -52,6 +52,7 @@ class	Request
 
 		// Setters
 		void	setStatus(RequestStatus status) { _status = status; };
+		void	setUri(std::string uri) { _uri = uri; };
 
 		// Utils
 		void	appendRawRequest(std::string rawRequest) { _rawRequest.append(rawRequest); };

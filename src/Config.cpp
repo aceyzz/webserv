@@ -2,21 +2,25 @@
 
 Config::~Config()
 {
-	for (size_t i = 0; i < _routes.size(); i++)
-	{
-		if (_routes[i])
-			delete _routes[i];
-	}
+	for (std::map<std::string, Route*>::iterator it = _routes.begin(); it != _routes.end(); it++)
+		delete it->second;
 }
 
 Route*	Config::getRoute(std::string uri)
 {
-	for (size_t i = 0; i < _routes.size(); i++)
+	std::map<std::string, Route*>::const_iterator it = _routes.find(uri);
+	if (it != _routes.end())
+		return it->second;
+
+	// Check for prefix match
+	for (it = _routes.begin(); it != _routes.end(); ++it)
 	{
-		if (_routes[i]->getUri() == uri)
-			return _routes[i];
+		if (uri.find(it->first) == 0)
+			return it->second;
 	}
-	return nullptr;
+
+	std::cout << "No route found for URI: " << uri << std::endl;
+	return NULL;
 }
 
 std::string	Config::getErrorPage(int code)
@@ -25,6 +29,11 @@ std::string	Config::getErrorPage(int code)
 	if (it != _errorPages.end())
 		return (it->second);
 	return "";
+}
+
+void	Config::addRoute(Route* route)
+{
+	_routes[route->getUri()] = route;
 }
 
 void	Config::printConfig()
@@ -39,8 +48,11 @@ void	Config::printConfig()
 		std::cout << it->first << ": " << it->second << std::endl;
 	std::cout << GOLD "Autoindex: " RST << _autoindex << std::endl;
 	std::cout << GOLD "Routes: " RST << std::endl;
-	for (size_t i = 0; i < _routes.size(); i++)
-		_routes[i]->printRoute();
+	for (std::map<std::string, Route*>::iterator it = _routes.begin(); it != _routes.end(); it++)
+	{
+		std::cout << CYAN "Route: " RST << std::endl;
+		it->second->printRoute();
+	}
 	std::cout << GOLD "Max body size: " RST << _maxBodySize << std::endl;
 }
 

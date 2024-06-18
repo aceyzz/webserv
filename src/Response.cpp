@@ -40,28 +40,6 @@ void	Response::printResponse()
 		std::cout << CYAN "Bytes sent: " RST << _bytesSent << std::endl;
 }
 
-void	Response::interpretRequest()
-{
-	std::string	method = _request->getMethod();
-	std::string	uri = _request->getUri();
-
-	Route*	route = _config->getRoute(uri);
-	if (!route)
-	{
-		buildErrorPage(404);
-		return ;
-	}
-
-	// HANDLE GET
-	// HANDLE POST
-	// HANDLE DELETE
-	// Sinon buildErrorPage(405);
-
-	// Structurer la reponse en string a partir des datas de la classe pour envoi final
-	if (_status == READY)
-		formatResponseToStr();
-}
-
 void	Response::buildErrorPage(int errorCode)
 {
 	std::map<int, std::string>	errorPages = _config->getErrorPages();
@@ -102,17 +80,173 @@ void	Response::formatResponseToStr()
 	_resultResponse += _body;
 }
 
-std::string	strToHtml(std::string content)
+void Response::buildListingPage()
 {
+	std::string	uri = _request->getUri();
+	std::string	path = _config->getRoot() + uri;
+
+	std::map<std::string, std::string>	dirContent = getDirContent(path);
 	std::string	html = "<html>\n";
-	html += "<head>\n";
-	html += "<title>Webserver</title>\n";
-	html += "</head>\n";
-	html += "<body>\n";
-	html += "<h1>";
-	html += content;
-	html += "</h1>\n";
-	html += "</body>\n";
-	html += "</html>\n";
-	return (html);
+	html += "<head>\n<title>Listing</title>\n</head>\n<body>\n<h1>Listing of ";
+	html += uri;
+	html += "</h1>\n<ul>\n";
+	for (std::map<std::string, std::string>::iterator it = dirContent.begin(); it != dirContent.end(); it++)
+	{
+		html += "<li><a href=\"";
+		html += uri;// pour reprendre le chemin
+		if (uri.back() != '/')// si besoin ,ajouter le /
+			html += "/";
+		html += it->first;
+		html += "\">";
+		html += it->first;
+		html += "</a></li>\n";
+	}
+	html += "</ul>\n</body>\n</html>\n";
+	_body = html;
+}
+
+bool	Response::isAllowedMethod(const std::string &method, Route *route)
+{
+	if (!route)
+		return false;
+
+	const std::vector<std::string>& allowedMethods = route->getMethod();
+	return (std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end());
+}
+
+int	Response::isFileOrDir(const std::string &str)
+{
+	struct stat	buf;
+
+	if (stat(str.c_str(), &buf) == -1)
+		return (-1);
+	if (S_ISREG(buf.st_mode))
+		return (ISFILE);
+	if (S_ISDIR(buf.st_mode))
+		return (ISDIR);
+	return (-1);
+}
+
+void	Response::interpretRequest()
+{
+	std::string method = _request->getMethod();
+	std::string uri = _request->getUri();
+
+	// Check de body size si trop grand, retourner 413
+	handleRequestTooLarge();
+
+	// Check for route before expanding URI
+	Route* route = _config->getRoute(uri);
+	if (!route)
+	{
+		std::cout << "Route not found for URI: " << uri << std::endl;
+		buildErrorPage(404);
+		_status = READY;
+		formatResponseToStr();
+		return;
+	}
+
+	// Expand URI with the index if necessary
+	if (uri == "/")
+	{
+		uri += _config->getIndex();
+		// Update the request URI with the expanded URI
+		_request->setUri(uri);
+	}
+
+	std::string fullPath = _config->getRoot() + uri;
+
+	std::cout << std::endl;
+	std::cout << "Full path: " << fullPath << std::endl;
+	std::cout << std::endl;
+
+	// Check if the method is allowed
+	if (method == "GET" && isAllowedMethod(method, route))
+		handleGet(fullPath);
+	// HANDLE POST
+	// HANDLE DELETE
+	// Sinon buildErrorPage(405);
+	else
+	{
+		buildErrorPage(405);
+		_status = READY;
+	}
+
+	// Structurer la reponse en string a partir des datas de la classe pour envoi final
+	if (_status == READY)
+		formatResponseToStr();
+
+	// Ajout de l'icone favicon si le content-type est du html
+	if (_headers["Content-Type"] == "text/html")
+		_resultResponse = addFaviconToResponse(_resultResponse);
+}
+
+void	Response::handleGet(const std::string &path)
+{
+	int fileOrDir = isFileOrDir(path);
+
+	std::cout << std::endl;
+	std::cout << LIME "Full path: " << path << RST << std::endl;
+	std::cout << std::endl;
+
+	switch (fileOrDir)
+	{
+		case (ISFILE):
+		{
+			std::string content = fileToStr(path);
+			std::string extension = getFileExtension(path);
+			_body = content;
+			_HTTPcode = 200;
+			_headers["Content-Type"] = getContentType(extension);
+			_statusMessage = "OK";
+			_status = READY;
+			return;
+		}
+		case (ISDIR):
+		{
+			if (_config->getAutoindex() == true)
+			{
+				buildListingPage();
+				_HTTPcode = 200;
+				_headers["Content-Type"] = "text/html";
+				_statusMessage = "OK";
+			}
+			else
+				buildErrorPage(403);
+			_status = READY;
+			return;
+		}
+		default:
+		{
+			buildErrorPage(404);
+			_status = READY;
+			return;
+		}
+	}
+}
+
+void	Response::sendResponse()
+{
+	std::string	response = _resultResponse;
+	const char*	responseChar = response.c_str();
+	size_t	responseSize = response.size();
+	size_t	bytesSent = 0;
+
+	bytesSent = send(_request->getFD(), responseChar, responseSize, 0);
+	if (bytesSent == (size_t)-1)
+	{
+		std::cerr << REDD "Error: send failed" RST << std::endl;
+		return ;
+	}
+}
+
+void	Response::handleRequestTooLarge()
+{
+	if (_request->getBody().size() > (size_t)_config->getMaxBodySize())
+	{
+		buildErrorPage(413);
+		_status = READY;
+		formatResponseToStr();
+		return;
+	}
 }

@@ -24,6 +24,8 @@
 
 #include "colors.hpp"
 
+#include "utils.hpp"
+
 # define DEBUG 1
 # define MAX_EVENTS 100
 # define MAX_URI_SIZE 4096

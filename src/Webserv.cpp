@@ -40,10 +40,11 @@ void	Webserver::printConfigs()
 		std::cout << YLLW << "Autoindex: " << RST << (config->getAutoindex() ? "true" : "false") << std::endl;
 		std::cout << YLLW << "Max body size: " << RST << config->getMaxBodySize() << std::endl;
 		std::cout << YLLW << "Routes: " << RST << std::endl;
-		std::vector<Route*> routes = config->getRoutes();
-		for (size_t i = 0; i < routes.size(); i++)
+		std::map<std::string, Route*> routes = config->getRoutes();
+		int i = 0;
+		for (std::map<std::string, Route*>::iterator it = routes.begin(); it != routes.end(); it++)
 		{
-			Route* route = routes[i];
+			Route* route = it->second;
 			std::cout << "  " << GRY1 "Route [" << i+1 << "] " RST << std::endl;
 			std::cout << "    " << YLLW << "Root: " << RST << route->getRoot() << std::endl;
 			std::cout << "    " << YLLW << "Uri: " << RST << route->getUri() << std::endl;
@@ -317,17 +318,17 @@ bool	Webserver::responseManager(int clientFD)
 	_responses[clientFD] = response;
 	_responses[clientFD]->interpretRequest();
 
-	if (DEBUG)
+	if (DEBUG && response->getStatus() == READY)
 		response->printResponse();
 
 	if (_responses[clientFD]->getStatus() == READY)
 	{
-		// sendResponse(_responses[clientFD]);
+		_responses[clientFD]->sendResponse();
 		_responses.erase(clientFD);
 		return (true);
 	}
 
-	return (true);// mettre a true pour debug
+	return (false);
 }
 
 void	Webserver::closeClient(int fd)

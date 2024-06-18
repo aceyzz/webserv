@@ -44,6 +44,8 @@ void	customSignals()
 
 int	main(int argc, char **argv)
 {
+	sleep(10);// Pour instruments
+
 	if (argc != 2)
 		return (errorReturn("Usage: ./webserv <config_file>", NULL));
 

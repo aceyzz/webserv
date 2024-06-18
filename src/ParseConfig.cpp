@@ -239,9 +239,9 @@ void	ParseConfig::checkServerConfig()
 		if (config->getErrorPages().empty())
 			throw std::runtime_error("error pages not defined in server block " + config->getName());
 
-		std::vector<Route*> routes = config->getRoutes();
-		for (size_t i = 0; i < routes.size(); i++)
-			checkRouteConfig(routes[i]);
+		std::map<std::string, Route*> routes = config->getRoutes();
+		for (std::map<std::string, Route*>::iterator it = routes.begin(); it != routes.end(); it++)
+			checkRouteConfig(it->second);
 	}
 }
 

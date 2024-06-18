@@ -10,6 +10,9 @@ enum eResponseStatus
 };
 
 #define HTTP_VERSION "HTTP/1.1"
+#define ISFILE 1
+#define ISDIR 2
+#define FAVICON "icon.ico"
 
 class	Response
 {
@@ -43,16 +46,20 @@ class	Response
 
 		// Methods
 		void	interpretRequest();
+		void	sendResponse();
 
-		void	handleGet(Route* route);
+		// Orchestrales pour GET
+		void	handleGet(const std::string &path);
 
+		// Utils
 		void	buildErrorPage(int errorCode);
-
 		void	formatResponseToStr();
+		void	buildListingPage();
+		int		isFileOrDir(const std::string &str);
+		bool	isAllowedMethod(const std::string &method, Route *route);
+		void	handleRequestTooLarge();
 
 		// Debug
 		void	printResponse();
 
 };
-
-std::string	strToHtml(std::string str);
