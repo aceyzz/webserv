@@ -156,10 +156,6 @@ void	Response::interpretRequest()
 
 	std::string fullPath = _config->getRoot() + uri;
 
-	std::cout << std::endl;
-	std::cout << "Full path: " << fullPath << std::endl;
-	std::cout << std::endl;
-
 	// Check if the method is allowed
 	if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
@@ -185,9 +181,8 @@ void	Response::handleGet(const std::string &path)
 {
 	int fileOrDir = isFileOrDir(path);
 
-	std::cout << std::endl;
-	std::cout << LIME "Full path: " << path << RST << std::endl;
-	std::cout << std::endl;
+	if (DEBUG)
+		std::cout << std::endl << LIME "Full path: " << path << RST << std::endl << std::endl;
 
 	switch (fileOrDir)
 	{

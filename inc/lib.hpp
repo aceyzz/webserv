@@ -26,6 +26,8 @@
 
 #include "utils.hpp"
 
-# define DEBUG 1
-# define MAX_EVENTS 100
+# define DEBUG 0
+# define MAX_EVENTS 1000
+# define MAX_LISTEN 1000
 # define MAX_URI_SIZE 4096
+# define BUFFER_SIZE 1024

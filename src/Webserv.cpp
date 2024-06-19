@@ -141,11 +141,13 @@ void	Webserver::runServer()
 {
 	while (g_signal)
 	{
+		// Creation du vecteur d'evenements
 		std::vector<struct kevent> events(MAX_EVENTS);
+		// On attend les evenements
 		int nbEvents = kevent(_kqueue, NULL, 0, &events[0], MAX_EVENTS, NULL);
 		if (nbEvents == -1 && g_signal)
 			throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
-		
+		// On parcourt les evenements
 		for (int i = 0; i < nbEvents; i++)
 		{
 			// Si EV_ERROR (erreur dans kevent) alors on continue
@@ -154,23 +156,26 @@ void	Webserver::runServer()
 				std::cerr << "Error in kevent" << std::endl;
 				continue;
 			}
-
+			// Si c'est un socket serveur en comparant avec le FD de l'evenement
 			if (isServerSocket(events[i].ident))
 			{
 				if (events[i].filter == EVFILT_READ)
 					acceptNewClient(events[i].ident);
 			}
+			// Sinon c'est un socket client
 			else
 			{
+				// Si c'est en lecture
 				if (events[i].filter == EVFILT_READ)
 				{
 					if (receiveRequest(events[i].ident))
 						parseAndHandleRequest(events[i].ident);
 				}
+				// Sinon c'est en ecriture
 				else if (events[i].filter == EVFILT_WRITE)
 				{
-				    if (responseManager(events[i].ident))
-				        closeClient(events[i].ident);
+					if (responseManager(events[i].ident))
+						closeClient(events[i].ident);
 				}
 			}
 		}
@@ -179,7 +184,7 @@ void	Webserver::runServer()
 
 bool	Webserver::receiveRequest(int clientFD)
 {
-	char	buffer[1024];
+	char	buffer[BUFFER_SIZE];
 	ssize_t	nbBytes = recv(clientFD, buffer, sizeof(buffer) - 1, 0);
 
 	if (nbBytes <= 0)

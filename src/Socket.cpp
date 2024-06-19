@@ -61,7 +61,7 @@ void	Socket::bindSocket()
 
 void	Socket::listenSocket()
 {
-	if (listen(_fd, 10) == -1)
+	if (listen(_fd, MAX_LISTEN) == -1)
 		throw std::runtime_error("listen() failed: " + std::string(strerror(errno)));
 }
 
