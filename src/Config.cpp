@@ -3,37 +3,56 @@
 Config::~Config()
 {
 	for (std::map<std::string, Route*>::iterator it = _routes.begin(); it != _routes.end(); it++)
-		delete it->second;
+		delete (it->second);
 }
 
 Route*	Config::getRoute(std::string uri)
 {
-	std::map<std::string, Route*>::const_iterator	it;
+	std::map<std::string, Route*>::const_iterator it;
 
 	// Recherche exacte de l'URI
 	it = _routes.find(uri);
 	if (it != _routes.end())
-		return it->second;
+		return (it->second);
+
+	// Vérifier la route racine en premier recours si l'URI est "/"
+	if (uri == "/")
+	{
+		it = _routes.find("/");
+		if (it != _routes.end())
+			return (it->second);
+	}
+
 	// Retirer chaque segment de l'URI et chercher à nouveau
-	while (!uri.empty())
+	while (!uri.empty() && uri != "/")
 	{
 		size_t pos = uri.find_last_of('/');
-		if (pos == std::string::npos)
-			break;
-		uri = uri.substr(0, pos);
+		if (pos == 0)
+			uri = "/";
+		else
+			uri = uri.substr(0, pos);
+
 		it = _routes.find(uri);
 		if (it != _routes.end())
-			return it->second;
+			return (it->second);
 	}
-	std::cout << "No route found for URI: " << uri << std::endl;
-	return NULL;
+
+	// Vérifier la route racine en dernier recours
+	it = _routes.find("/");
+	if (it != _routes.end())
+		return (it->second);
+
+	if (DEBUG)
+		std::cout << "Route not found for URI: " << uri << std::endl;
+
+	return (NULL);
 }
 
 std::string	Config::getErrorPage(int code)
 {
 	std::map<int, std::string>::iterator it = _errorPages.find(code);
 	if (it != _errorPages.end())
-		return (it->second);
+		return ((it->second));
 	return "";
 }
 
@@ -51,13 +70,13 @@ void	Config::printConfig()
 	std::cout << GOLD "Index: " RST << _index << std::endl;
 	std::cout << GOLD "Error pages: " RST << std::endl;
 	for (std::map<int, std::string>::iterator it = _errorPages.begin(); it != _errorPages.end(); it++)
-		std::cout << it->first << ": " << it->second << std::endl;
+		std::cout << it->first << ": " << (it->second) << std::endl;
 	std::cout << GOLD "Autoindex: " RST << _autoindex << std::endl;
 	std::cout << GOLD "Routes: " RST << std::endl;
 	for (std::map<std::string, Route*>::iterator it = _routes.begin(); it != _routes.end(); it++)
 	{
 		std::cout << CYAN "Route: " RST << std::endl;
-		it->second->printRoute();
+		(it->second)->printRoute();
 	}
 	std::cout << GOLD "Max body size: " RST << _maxBodySize << std::endl;
 }

@@ -60,7 +60,8 @@ class	Response
 		void	buildListingPage();
 		int		isFileOrDir(const std::string &str);
 		bool	isAllowedMethod(const std::string &method, Route *route);
-		void	handleRequestTooLarge();
+		bool	handleRequestTooLarge();
+		bool	handleUriTooLarge(const std::string &uri);
 
 		// Debug
 		void	printResponse();

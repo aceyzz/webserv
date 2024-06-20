@@ -132,8 +132,10 @@ void	Response::interpretRequest()
 	std::string method = _request->getMethod();
 	std::string uri = _request->getUri();
 
-	// Check de body size si trop grand, retourner 413
-	handleRequestTooLarge();
+	// Check le body size si trop grand, retourner 413
+	// Check la size d'URI si trop grand, retourner 414
+	if (handleUriTooLarge(uri) || handleRequestTooLarge())
+		return (formatResponseToStr());
 
 	// Check for route before expanding URI
 	Route* route = _config->getRoute(uri);
@@ -142,21 +144,20 @@ void	Response::interpretRequest()
 		std::cout << "Route not found for URI: " << uri << std::endl;
 		buildErrorPage(404);
 		_status = READY;
-		formatResponseToStr();
-		return;
+		return (formatResponseToStr());
 	}
 
-	// Expand URI with the index if necessary
+	// Étendre l'URI avec l'index si nécessaire
 	if (uri == "/")
 	{
 		uri += _config->getIndex();
-		// Update the request URI with the expanded URI
+		// MAJ du request avec la nouvelle uri
 		_request->setUri(uri);
 	}
 
 	std::string fullPath = _config->getRoot() + uri;
 
-	// Check if the method is allowed
+	// METHODES gérées: GET, POST et DELETE
 	if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
 	else if (method == "DELETE" && isAllowedMethod(method, route))
@@ -271,13 +272,24 @@ void	Response::sendResponse()
 	}
 }
 
-void	Response::handleRequestTooLarge()
+bool	Response::handleRequestTooLarge()
 {
 	if (_request->getBody().size() > (size_t)_config->getMaxBodySize())
 	{
 		buildErrorPage(413);
 		_status = READY;
-		formatResponseToStr();
-		return;
+		return (true);
 	}
+	return (false);
+}
+
+bool	Response::handleUriTooLarge(const std::string &uri)
+{
+	if (uri.size() > MAX_URI_SIZE)
+	{
+		buildErrorPage(414);
+		_status = READY;
+		return (true);
+	}
+	return (false);
 }
