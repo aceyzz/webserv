@@ -159,8 +159,8 @@ void	Response::interpretRequest()
 	// Check if the method is allowed
 	if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
-	// HANDLE POST
-	// HANDLE DELETE
+	else if (method == "DELETE" && isAllowedMethod(method, route))
+		handleDelete(fullPath);
 	// Sinon buildErrorPage(405);
 	else
 	{
@@ -218,6 +218,42 @@ void	Response::handleGet(const std::string &path)
 			return;
 		}
 	}
+}
+
+void	Response::handleDelete(const std::string &path)
+{
+	int	fileOrDir = isFileOrDir(path);
+
+	switch (fileOrDir)
+	{
+		case (ISFILE):
+		{
+			if (remove(path.c_str()) == 0)
+			{
+				_body = "File successfully deleted";
+				_HTTPcode = 200;
+				_statusMessage = "OK";
+			}
+			else
+			{
+				_body = "Error deleting file";
+				_HTTPcode = 500;
+				_statusMessage = "Internal Server Error";
+			}
+			break;
+		}
+		case (ISDIR):
+		{
+			buildErrorPage(403);
+			break;
+		}
+		default:
+		{
+			buildErrorPage(404);
+			break;
+		}
+	}
+	_status = READY;
 }
 
 void	Response::sendResponse()

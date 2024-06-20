@@ -8,17 +8,23 @@ Config::~Config()
 
 Route*	Config::getRoute(std::string uri)
 {
-	std::map<std::string, Route*>::const_iterator it = _routes.find(uri);
+	std::map<std::string, Route*>::const_iterator	it;
+
+	// Recherche exacte de l'URI
+	it = _routes.find(uri);
 	if (it != _routes.end())
 		return it->second;
-
-	// Check for prefix match
-	for (it = _routes.begin(); it != _routes.end(); ++it)
+	// Retirer chaque segment de l'URI et chercher à nouveau
+	while (!uri.empty())
 	{
-		if (uri.find(it->first) == 0)
+		size_t pos = uri.find_last_of('/');
+		if (pos == std::string::npos)
+			break;
+		uri = uri.substr(0, pos);
+		it = _routes.find(uri);
+		if (it != _routes.end())
 			return it->second;
 	}
-
 	std::cout << "No route found for URI: " << uri << std::endl;
 	return NULL;
 }

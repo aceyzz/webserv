@@ -8,15 +8,22 @@ Webserver::Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config
 
 Webserver::~Webserver()
 {
-	for (size_t i = 0; i < _serverSockets.size(); i++)
-		if (_serverSockets[i] != NULL)
-			delete _serverSockets[i];
+	for (std::map<int, Socket*>::iterator it = _serverSockets.begin(); it != _serverSockets.end(); it++)
+		if (it->second != NULL)
+			delete it->second;
+	_serverSockets.clear();
 	for (size_t i = 0; i < _clientSockets.size(); i++)
 		if (_clientSockets[i] != NULL)
 			delete _clientSockets[i];
+	_clientSockets.clear();
 	for (std::map<int, Request*>::iterator it = _requests.begin(); it != _requests.end(); it++)
 		if (it->second != NULL)
 			delete it->second;
+	_requests.clear();
+	for (std::map<int, Response*>::iterator it = _responses.begin(); it != _responses.end(); it++)
+		if (it->second != NULL)
+			delete it->second;
+	_responses.clear();
 	if (_kqueue != -1)
 		close(_kqueue);
 }
@@ -329,6 +336,8 @@ bool	Webserver::responseManager(int clientFD)
 	if (_responses[clientFD]->getStatus() == READY)
 	{
 		_responses[clientFD]->sendResponse();
+		close(clientFD);
+		delete _responses[clientFD];
 		_responses.erase(clientFD);
 		return (true);
 	}
@@ -340,8 +349,13 @@ void	Webserver::closeClient(int fd)
 {
 	if (fd != -1)
 		close(fd);
+
+	delete _requests[fd];
+	delete _responses[fd];
+	delete _clientSockets[fd];
 	_requests.erase(fd);
 	_clientSockets.erase(fd);
+	_responses.erase(fd);
 
 	if (DEBUG)
 		std::cout << "Client closed: " << fd << std::endl;

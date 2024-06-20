@@ -6,7 +6,7 @@
 #    By: cedmulle <42-xvi@protonmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/02 10:29:14 by cedmulle          #+#    #+#              #
-#    Updated: 2024/06/19 13:56:12 by cedmulle         ###   ########.fr        #
+#    Updated: 2024/06/20 07:34:43 by cedmulle         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ OBJ			= $(addprefix $(OBJ_DIR), $(notdir $(SRC:.cpp=.o)))
 INC			= $(wildcard $(SRC_DIR)*.hpp)
 RM			= rm -rf
 CC			= c++
-CFLAGS		= -Wall -Werror -Wextra -std=c++98 -I$(INC_DIR) -fsanitize=address -g
+CFLAGS		= -Wall -Werror -Wextra -std=c++98 -I$(INC_DIR) #-fsanitize=address -g
 
 RED			= \033[1;31m
 GRN			= \033[1;32m

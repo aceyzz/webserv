@@ -51,6 +51,9 @@ class	Response
 		// Orchestrales pour GET
 		void	handleGet(const std::string &path);
 
+		// Orchestrales pour DELETE
+		void	handleDelete(const std::string &path);
+
 		// Utils
 		void	buildErrorPage(int errorCode);
 		void	formatResponseToStr();
