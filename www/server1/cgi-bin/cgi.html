@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webserver</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #272a2b;
+            color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #a18822;
+            color: #f5f5f5;
+            padding: 10px 20px;
+            text-align: center;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        footer {
+            background: #a18822;
+            color: #f5f5f5;
+            text-align: center;
+            padding: 10px 20px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-top: 120px; /* height of the header */
+            padding-bottom: 120px; /* height of the footer */
+        }
+        .navigation {
+            position: fixed;
+            top: 60px; /* height of the header */
+            left: 0;
+            width: 300px;
+            height: calc(100% - 120px); /* full height minus header and footer */
+            background: rgba(85, 85, 85, 0.9);
+            color: #f5f5f5;
+            padding-top: 40px;
+            transform: translateX(-300px);
+            transition: transform 0.3s ease-in-out;
+            z-index: 1000;
+        }
+        .navigation.show {
+            transform: translateX(0);
+        }
+        .navigation li {
+            margin-bottom: 10px;
+        }
+        .navigation ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .navigation a {
+            display: block;
+            padding: 10px 20px;
+            background-color: #a18822;
+            color: #f5f5f5;
+            text-decoration: none;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s, color 0.3s;
+            margin: 10px 10px;
+        }
+        .navigation a:hover {
+            background-color: #272a2b;
+            color: #f5f5f5;
+        }
+        .toggle-button {
+            position: fixed;
+            top: 30px;
+            left: 40px;
+            cursor: pointer;
+            z-index: 1001;
+            color: #272a2b;
+            background-color: #f5f5f5;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .toggle-button:hover {
+            background-color: #272a2b;
+            color: #f5f5f5;
+        }
+        .section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            background: #444;
+            border-radius: 8px;
+            margin: 20px auto;
+            width: 75%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .section h2 {
+            margin-bottom: 20px; /* Espacement entre le titre et le texte */
+            font-size: 2em; /* Taille du titre */
+        }
+        .section p {
+            font-size: 1.2em; /* Taille du paragraphe */
+            max-width: 800px; /* Largeur maximale pour une meilleure lisibilité */
+            text-align: center; /* Centrage du texte */
+        }
+        .section form,
+        .section button {
+            margin-top: 10px;
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            display: inline-block; /* Ajout de inline-block pour centrer */
+        }
+        .section input[type="number"],
+        .section input[type="file"],
+        .section select {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 4px;
+            border: none;
+            font-size: 1em;
+            width: calc(100% - 40px);
+            max-width: 300px;
+        }
+        .calculator-section .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .section button {
+            background-color: #a18822;
+            color: #f5f5f5;
+            transition: background 0.3s;
+        }
+        .section button:hover {
+            background-color: #b49a34; /* Léger changement de couleur au survol */
+        }
+        .file-management-section ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .file-management-section ul li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>CGI</h1>
+    </header>
+    <div class="content">
+        <div class="navigation" id="navigation">
+            <ul>
+                <li><a href="../index.html" style="color: inherit;">Accueil</a></li>
+                <li><a href="../authors.html" style="color: inherit;">Auteurs</a></li>
+                <li><a href="cgi.html" style="color: inherit;">CGI</a></li>
+            </ul>
+        </div>
+        <div class="presentation-section section">
+            <p>Voici quelques exemples d'implémentations de CGI.</p>
+			<li><a style="color: inherit;">Mini-Calculatrice Python</a></li>
+			<li><a style="color: inherit;">File manager en PHP</a></li>
+			<li><a style="color: inherit;">Bitcoin price en Bash</a></li>
+        </div>
+        <div class="toggle-button" onclick="toggleNavigation()">
+            Menu
+        </div>
+        <div class="calculator-section section">
+            <h2>Mini-Calculatrice</h2>
+            <form action="calculator.py" method="POST" target="_blank">
+                <div class="input-group">
+                    <input type="number" name="leftOperand" placeholder="Num1" required>
+                    <select name="operator">
+                        <option value="+">+</option>
+                        <option value="-">-</option>
+                        <option value="*">*</option>
+                        <option value="/">/</option>
+                    </select>
+                    <input type="number" name="rightOperand" placeholder="Num2" required>
+                </div>
+                <button type="submit">Calculer</button>
+            </form>
+        </div>
+        <div class="file-management-section section">
+            <h2>Gestion de fichiers</h2>
+            <div>
+                <h3>Uploader un fichier</h3>
+                <form action="upload_file.php" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="fileToUpload" required>
+                    <button type="submit">Envoyer le fichier</button>
+                </form>
+            </div>
+            <div>
+                <h3>Télécharger un fichier</h3>
+                <button onclick="listFiles()">Voir les fichiers disponibles</button>
+                <ul id="fileList"></ul>
+            </div>
+        </div>
+        <div class="bitcoin-section section">
+            <h2>Prix du Bitcoin</h2>
+            <button onclick="fetchBitcoinPrice()">Obtenir le prix du Bitcoin</button>
+            <div id="bitcoinPrice"></div>
+        </div>
+    </div>
+    <footer>
+        <p>Webserv Project - École 42</p>
+    </footer>
+
+    <script>
+        function toggleNavigation() {
+            var navigation = document.getElementById("navigation");
+            navigation.classList.toggle("show");
+        }
+
+        function listFiles() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'list_files.php', true);
+            xhr.onload = function() {
+                if (this.status == 200) {
+                    document.getElementById('fileList').innerHTML = this.responseText;
+                }
+            };
+            xhr.send();
+        }
+
+        function fetchBitcoinPrice() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/cgi-bin/bitcoin_price.sh', true);
+            xhr.onload = function() {
+                if (this.status == 200) {
+                    document.getElementById('bitcoinPrice').innerHTML = this.responseText;
+                }
+            };
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

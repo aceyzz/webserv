@@ -18,7 +18,7 @@ std::string	strToHtml(std::string content)
 
 std::string	fileToStr(const std::string &path)
 {
-	std::ifstream	file(path.c_str());
+	std::ifstream	file(path.c_str(), std::ios::binary);
 	if (file.is_open())
 	{
 		std::string	content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
@@ -58,7 +58,10 @@ std::string	getContentType(const std::string &fileExtension)
 	contentTypes[".xhtml"] = "application/xhtml+xml";
 
 	if (contentTypes.find(fileExtension) != contentTypes.end())
+	{
+		std::cout << "Content-Type: " << contentTypes.at(fileExtension) << std::endl;
 		return (contentTypes.at(fileExtension));
+	}
 	else
 		return ("application/octet-stream");// par defaut selon rfc 2046
 }

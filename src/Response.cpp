@@ -182,9 +182,6 @@ void	Response::handleGet(const std::string &path)
 {
 	int fileOrDir = isFileOrDir(path);
 
-	if (DEBUG)
-		std::cout << std::endl << LIME "Full path: " << path << RST << std::endl << std::endl;
-
 	switch (fileOrDir)
 	{
 		case (ISFILE):
