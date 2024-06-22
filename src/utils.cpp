@@ -102,17 +102,17 @@ std::map<std::string, std::string>	getDirContent(const std::string &path)
 
 std::string	addFaviconToResponse(const std::string& response)
 {
-    std::string 			iconLink = "<link rel=\"icon\" href=\"" FAVICON "\" type=\"image/x-icon\"/>\n";
-    std::string::size_type	headEnd = response.find("</head>");
+	std::string 			iconLink = "<link rel=\"icon\" href=\"" FAVICON "\" type=\"image/x-icon\"/>\n";
+	std::string::size_type	headEnd = response.find("</head>");
 
-    if (headEnd != std::string::npos)
-    {
-        // Insérer l'icône juste avant la fermeture de la balise </head>
-        return (response.substr(0, headEnd) + iconLink + response.substr(headEnd));
-    }
-    else
-    {
-        // Si pas de balise </head> trouvée, ajouter l'icône au début du document
-        return (iconLink + response);
-    }
+	if (headEnd != std::string::npos)
+	{
+		// Insérer l'icône juste avant la fermeture de la balise </head>
+		return (response.substr(0, headEnd) + iconLink + response.substr(headEnd));
+	}
+	else
+	{
+		// Si pas de balise </head> trouvée, ajouter l'icône au début du document
+		return (iconLink + response);
+	}
 }
