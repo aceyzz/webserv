@@ -321,23 +321,22 @@ bool	Webserver::responseManager(int clientFD)
 
 	// Creer la reponse
 	Response*	response = _responses[clientFD];
-	if (!_responses[clientFD])
+	if (!response)
 	{
 		response = new Response(request, config, _clientSockets[clientFD]);
 		_responses[clientFD] = response;
 	}
 
-	_responses[clientFD] = response;
-	_responses[clientFD]->interpretRequest();
+	response->interpretRequest();
 
 	if (DEBUG && response->getStatus() == READY)
 		response->printResponse();
 
-	if (_responses[clientFD]->getStatus() == READY)
+	if (response->getStatus() == READY)
 	{
-		_responses[clientFD]->sendResponse();
+		response->sendResponse();
 		close(clientFD);
-		delete _responses[clientFD];
+		delete response;
 		_responses.erase(clientFD);
 		return (true);
 	}
