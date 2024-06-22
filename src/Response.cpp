@@ -149,6 +149,15 @@ void	Response::interpretRequest()
 		return (formatResponseToStr());
 	}
 
+	// Redirection si nécessaire
+	if (route->getIsRedir())
+	{
+		_headers["Location"] = route->getRedirPath();
+		buildErrorPage(301);
+		_status = READY;
+		return;
+	}
+
 	// Étendre l'URI avec l'index si nécessaire
 	if (uri == "/")
 	{
