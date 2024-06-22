@@ -40,6 +40,7 @@ void	customSignals()
 	signal(SIGINT, signalHandler);
 	signal(SIGQUIT, signalHandler);
 	signal(SIGTERM, signalHandler);
+	signal(SIGPIPE, SIG_IGN);
 }
 
 int	main(int argc, char **argv)

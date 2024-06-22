@@ -8,6 +8,7 @@ Response::Response(Request* request, Config* config, Socket* clientSocket)
 	_config = config;
 	_clientSocket = clientSocket;
 	_bytesSent = -1;
+	_totalBytes = 0;
 	_body = "";
 	_resultResponse = "";
 }
@@ -78,6 +79,7 @@ void	Response::formatResponseToStr()
 	}
 	_resultResponse += "\r\n";
 	_resultResponse += _body;
+	_currentChunkOffset = 0;
 }
 
 void Response::buildListingPage()
@@ -256,17 +258,36 @@ void	Response::handleDelete(const std::string &path)
 
 void	Response::sendResponse()
 {
-	std::string	response = _resultResponse;
-	const char*	responseChar = response.c_str();
-	size_t	responseSize = response.size();
-	size_t	bytesSent = 0;
-
-	bytesSent = send(_request->getFD(), responseChar, responseSize, 0);
-	if (bytesSent == (size_t)-1)
+	if (_totalBytes == 0) // First call, prepare the response string
 	{
-		std::cerr << REDD "Error: send failed" RST << std::endl;
-		return ;
+		formatResponseToStr();
+		_totalBytes = _resultResponse.size();
+		_bytesSent = 0; // Initialize bytes sent
 	}
+
+	size_t	remainingBytes = _totalBytes - _bytesSent;
+	size_t	chunkSize = std::min(remainingBytes, (size_t)2048);
+	_responseChunk = _resultResponse.substr(_bytesSent, chunkSize);
+
+	if (_request->getFD() == -1)
+	{
+		_status = SENT;
+		return;
+	}
+	ssize_t bytesSent = send(_request->getFD(), _responseChunk.c_str(), chunkSize, 0);
+
+	if (bytesSent > 0)
+	{
+		_bytesSent += bytesSent;
+		if (_bytesSent >= _totalBytes)
+			_status = SENT;
+		else
+			_status = WRITING;
+	}
+	else if (bytesSent == 0)
+		_status = WRITING;
+	else
+		_status = SENT;
 }
 
 bool	Response::handleRequestTooLarge()

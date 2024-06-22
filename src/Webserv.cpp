@@ -182,7 +182,8 @@ void	Webserver::runServer()
 				else if (events[i].filter == EVFILT_WRITE)
 				{
 					if (responseManager(events[i].ident))
-						closeClient(events[i].ident);
+						if (_responses[events[i].ident]->getStatus() == SENT)
+							closeClient(events[i].ident);
 				}
 			}
 		}
@@ -303,45 +304,44 @@ void	Webserver::parseAndHandleRequest(int fd)
 
 bool	Webserver::responseManager(int clientFD)
 {
-	// Obtenir la requete du client
-	Request*	request = _requests[clientFD];
+	// Obtenir la requête du client
+	Request* request = _requests[clientFD];
 	if (!request)
 	{
 		std::cerr << "Request of client not found" << std::endl;
-		return (false);
+		return false;
 	}
 
 	// Obtenir la configuration correspondante
-	Config*	config = getConfigForClient(clientFD);
+	Config* config = getConfigForClient(clientFD);
 	if (!config)
 	{
 		std::cerr << "Config for client not found" << std::endl;
-		return (false);
+		return false;
 	}
 
-	// Creer la reponse
-	Response*	response = _responses[clientFD];
+	// Récupérer la réponse, ou la créer si non existante
+	Response* response = _responses[clientFD];
 	if (!response)
 	{
 		response = new Response(request, config, _clientSockets[clientFD]);
 		_responses[clientFD] = response;
 	}
 
+	// Interpréter la requête
 	response->interpretRequest();
 
 	if (DEBUG && response->getStatus() == READY)
 		response->printResponse();
 
-	if (response->getStatus() == READY)
+	if (response->getStatus() == READY || response->getStatus() == WRITING)
 	{
 		response->sendResponse();
-		close(clientFD);
-		delete response;
-		_responses.erase(clientFD);
-		return (true);
+		if (response->getStatus() == SENT)
+			return true;
 	}
 
-	return (false);
+	return false;
 }
 
 void	Webserver::closeClient(int fd)
@@ -349,12 +349,21 @@ void	Webserver::closeClient(int fd)
 	if (fd != -1)
 		close(fd);
 
-	delete _requests[fd];
-	delete _responses[fd];
-	delete _clientSockets[fd];
-	_requests.erase(fd);
-	_clientSockets.erase(fd);
-	_responses.erase(fd);
+	if (_requests[fd])
+	{
+		delete _requests[fd];
+		_requests.erase(fd);
+	}
+	if (_responses[fd])
+	{
+		delete _responses[fd];
+		_responses.erase(fd);
+	}
+	if (_clientSockets[fd])
+	{
+		delete _clientSockets[fd];
+		_clientSockets.erase(fd);
+	}
 
 	if (DEBUG)
 		std::cout << "Client closed: " << fd << std::endl;

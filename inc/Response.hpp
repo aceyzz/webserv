@@ -9,11 +9,6 @@ enum eResponseStatus
 	SENT
 };
 
-#define HTTP_VERSION "HTTP/1.1"
-#define ISFILE 1
-#define ISDIR 2
-#define FAVICON "icon.ico"
-
 class	Response
 {
 	private:
@@ -27,9 +22,13 @@ class	Response
 		std::string							_statusMessage;
 		std::map<std::string, std::string>	_headers;
 		std::string							_body;
-		
-		std::string							_resultResponse;		
+		std::string							_resultResponse;
+
 		size_t								_bytesSent;
+		size_t								_totalBytes;
+
+		size_t								_currentChunkOffset;
+		std::string							_responseChunk;
 
 	public:
 		Response(Request* request, Config* config, Socket* clientSocket);
