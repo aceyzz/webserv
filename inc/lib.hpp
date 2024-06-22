@@ -28,6 +28,6 @@
 
 # define DEBUG 0
 # define MAX_EVENTS 1000
-# define MAX_LISTEN 1000
+# define MAX_LISTEN 255
 # define MAX_URI_SIZE 2000
 # define BUFFER_SIZE 1024

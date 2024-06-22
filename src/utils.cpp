@@ -58,10 +58,7 @@ std::string	getContentType(const std::string &fileExtension)
 	contentTypes[".xhtml"] = "application/xhtml+xml";
 
 	if (contentTypes.find(fileExtension) != contentTypes.end())
-	{
-		std::cout << "Content-Type: " << contentTypes.at(fileExtension) << std::endl;
 		return (contentTypes.at(fileExtension));
-	}
 	else
 		return ("application/octet-stream");// par defaut selon rfc 2046
 }
