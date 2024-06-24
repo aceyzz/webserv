@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "colors.hpp"
-
 #include "utils.hpp"
 
 #define DEBUG 1

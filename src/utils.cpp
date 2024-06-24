@@ -116,3 +116,27 @@ std::string	addFaviconToResponse(const std::string& response)
 		return (iconLink + response);
 	}
 }
+
+std::string	getFileExtensionFromContentType(const std::string &contentType)
+{
+    if (contentType == "image/jpeg") return ".jpg";
+    if (contentType == "image/png") return ".png";
+    if (contentType == "image/gif") return ".gif";
+    if (contentType == "text/html") return ".html";
+    if (contentType == "text/plain") return ".txt";
+    if (contentType == "application/pdf") return ".pdf";
+	if (contentType == "application/zip") return ".zip";
+	if (contentType == "application/x-tar") return ".tar";
+	if (contentType == "application/gzip") return ".gz";
+	if (contentType == "audio/mpeg") return ".mp3";
+	if (contentType == "audio/wav") return ".wav";
+	if (contentType == "video/mp4") return ".mp4";
+	if (contentType == "video/x-msvideo") return ".avi";
+	if (contentType == "video/mpeg") return ".mpeg";
+	if (contentType == "video/webm") return ".webm";
+	if (contentType == "text/csv") return ".csv";
+	if (contentType == "text/xml") return ".xml";
+	if (contentType == "application/json") return ".json";
+	if (contentType == "application/xhtml+xml") return ".xhtml";
+	return "";
+}

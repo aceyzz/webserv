@@ -64,10 +64,14 @@ class	Webserver
 		// Orchestrales pour Response
 		bool	responseManager(int clientFD);
 
+		// handleContinue
+		void	sendContinueResponse(int clientFD);
+
 		// Utils
 		bool	isServerSocket(int fd);
 		void	acceptNewClient(int serverFD);
 		Config*	getConfigForClient(int clientFD);
+
 		// Debug
 		void	printConfigs();
 		void	printSockets();

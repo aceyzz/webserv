@@ -290,6 +290,13 @@ void	Webserver::parseAndHandleRequest(int fd)
 	if (DEBUG)
 		request->printRequest();
 
+	if (request->expectsContinue())
+    {
+        sendContinueResponse(fd);
+        request->setStatus(CONTINUE);
+        return;
+    }
+
 	// Mise a jour de l'evenement kqueue pour l'ecriture
 	struct kevent	event;
 	EV_SET(&event, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
@@ -385,4 +392,10 @@ Config*	Webserver::getConfigForClient(int clientFD)
 		return (NULL);
 
 	return (config);
+}
+
+void	Webserver::sendContinueResponse(int clientFD)
+{
+    const char *continueMessage = "HTTP/1.1 100 Continue\r\n\r\n";
+    send(clientFD, continueMessage, strlen(continueMessage), 0);
 }

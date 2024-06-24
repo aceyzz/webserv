@@ -6,7 +6,8 @@ enum	RequestStatus
 {
 	RECEIVING,
 	COMPLETE,
-	ERROR
+	ERROR,
+	CONTINUE
 };
 
 class	Request
@@ -56,6 +57,7 @@ class	Request
 
 		// Utils
 		void	appendRawRequest(std::string rawRequest) { _rawRequest.append(rawRequest); };
+		bool	expectsContinue();
 
 		// Debug
 		void	printRequest();

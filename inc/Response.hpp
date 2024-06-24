@@ -53,6 +53,9 @@ class	Response
 		// Orchestrales pour DELETE
 		void	handleDelete(const std::string &path);
 
+		// Orchestrales pour POST
+		// void	handlePost(const std::string &path);
+
 		// Utils
 		void	buildErrorPage(int errorCode);
 		void	formatResponseToStr();

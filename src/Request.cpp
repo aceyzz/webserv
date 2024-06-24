@@ -95,3 +95,11 @@ void	Request::parseHeadersAndBody(const std::vector<std::string>& lines)
 	// MAJ du statut
 	_status = COMPLETE;
 }
+
+bool	Request::expectsContinue()
+{
+	std::map<std::string, std::string>::iterator it = _headers.find("Expect");
+	if (it != _headers.end() && it->second == "100-continue")
+		return (true);
+	return (false);
+}

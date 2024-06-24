@@ -51,7 +51,6 @@ int	main(int argc, char **argv)
 	try
 	{
 		ParseConfig	parser(argv[1]);
-
 		Webserver	webserv(parser.getConfigs());
 		// webserv.printConfigs();
 
