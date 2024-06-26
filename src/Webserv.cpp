@@ -118,7 +118,7 @@ void	Webserver::initServer()
 	_kqueue = kqueue();
 	if (_kqueue == -1)
 		throw std::runtime_error("kqueue() failed");
-	
+
 	// Creation des sockets serveurs
 	for (size_t i = 0; i < _configs.size(); i++)
 	{
@@ -291,11 +291,11 @@ void	Webserver::parseAndHandleRequest(int fd)
 		request->printRequest();
 
 	if (request->expectsContinue())
-    {
-        sendContinueResponse(fd);
-        request->setStatus(CONTINUE);
-        return;
-    }
+	{
+		sendContinueResponse(fd);
+		request->setStatus(CONTINUE);
+		return;
+	}
 
 	// Mise a jour de l'evenement kqueue pour l'ecriture
 	struct kevent	event;
@@ -396,6 +396,6 @@ Config*	Webserver::getConfigForClient(int clientFD)
 
 void	Webserver::sendContinueResponse(int clientFD)
 {
-    const char *continueMessage = "HTTP/1.1 100 Continue\r\n\r\n";
-    send(clientFD, continueMessage, strlen(continueMessage), 0);
+	const char *continueMessage = "HTTP/1.1 100 Continue\r\n\r\n";
+	send(clientFD, continueMessage, strlen(continueMessage), 0);
 }

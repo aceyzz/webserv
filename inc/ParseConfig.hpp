@@ -6,7 +6,7 @@ class	ParseConfig
 {
 	private:
 		std::vector<Config*>	_configs;
-	
+
 	public:
 		ParseConfig() {};
 		ParseConfig(std::string path);
@@ -14,7 +14,7 @@ class	ParseConfig
 
 		// Getters
 		std::vector<Config*>	getConfigs() const { return _configs; };
-		
+
 		// PARTIE 1 : Parsing du fichier de configuration (orchestral)
 		void	loadConfig(std::string path);
 

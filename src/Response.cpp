@@ -82,7 +82,7 @@ void	Response::formatResponseToStr()
 	_currentChunkOffset = 0;
 }
 
-void Response::buildListingPage()
+void	Response::buildListingPage()
 {
 	std::string	uri = _request->getUri();
 	std::string	path = _config->getRoot() + uri;
@@ -116,7 +116,7 @@ bool	Response::isAllowedMethod(const std::string &method, Route *route)
 	return (std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end());
 }
 
-int	Response::isFileOrDir(const std::string &str)
+int		Response::isFileOrDir(const std::string &str)
 {
 	struct stat	buf;
 

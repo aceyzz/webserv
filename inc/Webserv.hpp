@@ -30,7 +30,7 @@ class	Webserver
 		std::map<int, Request*>		_requests;
 		std::map<int, Response*>	_responses;
 		std::map<int, Config*>		_configsByPort;
-	
+
 	public:
 		// Constructors & destructors
 		Webserver(std::vector<Config*> config);

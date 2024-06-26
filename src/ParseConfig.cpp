@@ -19,7 +19,7 @@ void	ParseConfig::loadConfig(std::string path)
     std::ifstream	file(path.c_str());
     if (!file.is_open())
         throw std::runtime_error("could not open file " + path);
-    
+
     std::string					line;
     std::string					currentConfig;
     std::vector<std::string>	configs;
@@ -40,19 +40,19 @@ void	ParseConfig::loadConfig(std::string path)
 
     if (!currentConfig.empty())
         configs.push_back(currentConfig);
-    
+
     file.close();
 
     for (size_t i = 0; i < configs.size(); i++)
         parseEachConfig(configs[i]);
-	
+
 	checkServerConfig();
 }
 
 void ParseConfig::parseEachConfig(std::string config)
 {
     Config*	newConfig = new Config();
-    
+
     std::istringstream			iss(config);
     std::string					line;
     std::vector<std::string>	locationBlocks;

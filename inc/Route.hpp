@@ -13,7 +13,7 @@ class	Route
 		Cgi							*_cgi;
 		bool						_isRedir;
 		std::string					_redirPath;
-	
+
 	public:
 		Route() : _cgiEnabled(false), _cgi(nullptr), _isRedir(false) {};
 		~Route();

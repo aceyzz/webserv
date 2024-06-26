@@ -22,7 +22,7 @@ void	Request::printRequest()
 void	Request::parseRequest(std::string rawRequest)
 {
 	_rawRequest = rawRequest;
-	
+
 	std::istringstream stream(rawRequest);
 	std::string line;
 	std::vector<std::string> lines;

@@ -13,7 +13,7 @@ class	Response
 {
 	private:
 		eResponseStatus						_status;
-		
+
 		Request*							_request;
 		Config*								_config;
 		Socket*								_clientSocket;

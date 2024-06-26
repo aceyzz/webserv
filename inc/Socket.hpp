@@ -44,7 +44,7 @@ class	Socket
 		// Methods
 		void	bindSocket();
 		void	listenSocket();
-		
+
 		// Client
 		int		acceptSocket(int eventfd);
 

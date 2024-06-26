@@ -14,7 +14,7 @@ class	Config
 		std::map<std::string, Route*>	_routes;
 		int								_maxBodySize;
 		std::map<int, std::string>		_errorMessages;
-	
+
 	public:
 		Config() : _port(-1), _autoindex(false), _maxBodySize(-1) { setErrorMessages(); };
 		~Config();
