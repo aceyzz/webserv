@@ -7,12 +7,12 @@ void	Request::printRequest()
 	std::cout << CYAN "- FD: " RST << _fd << std::endl;
 	std::cout << CYAN "- Method: " RST << _method << std::endl;
 	std::cout << CYAN "- Uri: " RST << _uri << std::endl;
+	std::cout << CYAN "- Param: " RST << _param << std::endl;
 	std::cout << CYAN "- Version HTTP: " RST << _versionHTTP << std::endl;
 	std::cout << CYAN "- Headers: " RST << std::endl;
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 		std::cout << "  " << it->first << ": " << it->second << std::endl;
 	std::cout << CYAN "- Body: " RST << _body << std::endl;
-	std::cout << CYAN "- Param: " RST << _param << std::endl;
 	std::cout << CYAN "- Client IP: " RST << _clientIp << std::endl;
 	std::cout << CYAN "- Timestamp: " RST << _timestamp << std::endl;
 	std::cout << CYAN "- Status: " RST << _status << std::endl;
@@ -55,6 +55,8 @@ void	Request::parseRequestLine(const std::string& line)
 
 	// Mettre à jour le timestamp au moment de la réception de la requête
 	_timestamp = std::time(nullptr);
+
+	parseParamsUri();
 }
 
 void	Request::parseHeadersAndBody(const std::vector<std::string>& lines)
@@ -102,4 +104,14 @@ bool	Request::expectsContinue()
 	if (it != _headers.end() && it->second == "100-continue")
 		return (true);
 	return (false);
+}
+
+void	Request::parseParamsUri()
+{
+	size_t pos = _uri.find("?");
+	if (pos != std::string::npos)
+	{
+		_param = _uri.substr(pos + 1);
+		_uri = _uri.substr(0, pos);
+	}
 }

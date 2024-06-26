@@ -58,6 +58,7 @@ class	Request
 		// Utils
 		void	appendRawRequest(std::string rawRequest) { _rawRequest.append(rawRequest); };
 		bool	expectsContinue();
+		void	parseParamsUri();
 
 		// Debug
 		void	printRequest();
