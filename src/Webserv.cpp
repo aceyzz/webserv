@@ -331,7 +331,7 @@ bool	Webserver::responseManager(int clientFD)
 	Response* response = _responses[clientFD];
 	if (!response)
 	{
-		response = new Response(request, config, _clientSockets[clientFD]);
+		response = new Response(request, config, _clientSockets[clientFD], _kqueue);
 		_responses[clientFD] = response;
 	}
 

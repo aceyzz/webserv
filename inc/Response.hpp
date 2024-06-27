@@ -12,6 +12,7 @@ enum eResponseStatus
 class	Response
 {
 	private:
+		int									_kqueue;
 		eResponseStatus						_status;
 
 		Request*							_request;
@@ -31,7 +32,7 @@ class	Response
 		std::string							_responseChunk;
 
 	public:
-		Response(Request* request, Config* config, Socket* clientSocket);
+		Response(Request* request, Config* config, Socket* clientSocket, int kqueue);
 		~Response() { _headers.clear(); };
 
 		// Getters

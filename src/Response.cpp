@@ -1,6 +1,6 @@
 #include "Response.hpp"
 
-Response::Response(Request* request, Config* config, Socket* clientSocket)
+Response::Response(Request* request, Config* config, Socket* clientSocket, int kqueue)
 {
 	_status = WRITING;
 	_HTTPcode = 0;
@@ -11,6 +11,9 @@ Response::Response(Request* request, Config* config, Socket* clientSocket)
 	_totalBytes = 0;
 	_body = "";
 	_resultResponse = "";
+	_currentChunkOffset = 0;
+	_responseChunk = "";
+	_kqueue = kqueue;
 }
 
 void	Response::printResponse()
