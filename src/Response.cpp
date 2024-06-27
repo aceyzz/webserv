@@ -171,23 +171,11 @@ void	Response::interpretRequest()
 
 	std::string fullPath = _config->getRoot() + uri;
 
-	if (DEBUG)
-	{
-		std::cout << std::endl;
-		std::cout << GOLD "INTERPRETATION DE LA REQUETE" RST << std::endl;
-		std::cout << CYAN "Method: " RST << method << std::endl;
-		std::cout << CYAN "URI: " RST << uri << std::endl;
-		std::cout << CYAN "Full path: " RST << fullPath << std::endl;
-		std::cout << std::endl;
-	}
-
 	// METHODES gérées: GET, POST et DELETE
 	if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
 	else if (method == "DELETE" && isAllowedMethod(method, route))
 		handleDelete(fullPath);
-	// else if (method == "POST" && isAllowedMethod(method, route))
-	// 	handlePost(fullPath);
 	// Sinon buildErrorPage(405);
 	else
 	{

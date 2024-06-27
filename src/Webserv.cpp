@@ -146,6 +146,7 @@ void	Webserver::initServer()
 
 void	Webserver::runServer()
 {
+	std::cout << LIME "Server is running..." RST << std::endl;
 	while (g_signal)
 	{
 		// Creation du vecteur d'evenements
