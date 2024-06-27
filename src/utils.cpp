@@ -140,3 +140,57 @@ std::string	getFileExtensionFromContentType(const std::string &contentType)
 	if (contentType == "application/xhtml+xml") return ".xhtml";
 	return "";
 }
+
+std::string	generateRandomFilename()
+{
+	std::string	chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	std::string	filename = "user_";
+	for (int i = 0; i < 10; i++)
+		filename += chars[rand() % chars.size()];
+	return (filename);
+}
+
+std::string	convertBodyToFileContent(const std::string &body)
+{
+	std::string fileContent;
+    std::string delimiter;
+    std::string endDelimiter;
+
+    // Find the boundary delimiter
+    size_t boundaryPos = body.find("boundary=");
+    if (boundaryPos == std::string::npos) {
+        return body; // No boundary found, return the entire body as file content
+    }
+    boundaryPos += 9; // Skip "boundary="
+    size_t boundaryEndPos = body.find("\r\n", boundaryPos);
+    if (boundaryEndPos == std::string::npos) {
+        return body; // Invalid boundary format, return the entire body as file content
+    }
+    delimiter = "--" + body.substr(boundaryPos, boundaryEndPos - boundaryPos);
+    endDelimiter = delimiter + "--";
+
+    // Find the start of the file content
+    size_t fileStartPos = body.find(delimiter, boundaryEndPos);
+    if (fileStartPos == std::string::npos) {
+        return body; // No file content found, return the entire body as file content
+    }
+    fileStartPos += delimiter.size();
+    fileStartPos = body.find("\r\n\r\n", fileStartPos);
+    if (fileStartPos == std::string::npos) {
+        return body; // Invalid format, return the entire body as file content
+    }
+    fileStartPos += 4; // Skip the header terminator
+
+    // Find the end of the file content
+    size_t fileEndPos = body.find("\r\n" + delimiter, fileStartPos);
+    if (fileEndPos == std::string::npos) {
+        fileEndPos = body.find("\r\n" + endDelimiter, fileStartPos);
+        if (fileEndPos == std::string::npos) {
+            return body; // Invalid format, return the entire body as file content
+        }
+    }
+
+    // Extract the file content
+    fileContent = body.substr(fileStartPos, fileEndPos - fileStartPos);
+    return fileContent;
+}

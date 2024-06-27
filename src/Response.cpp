@@ -172,7 +172,10 @@ void	Response::interpretRequest()
 	std::string fullPath = _config->getRoot() + uri;
 
 	// METHODES gérées: GET, POST et DELETE
-	if (method == "GET" && isAllowedMethod(method, route))
+	if (isAllowedMethod(method, route) && route->getCgiEnabled()
+		&& (method == "GET" || method == "POST"))
+		handleGetPostCgi(fullPath, method, route);
+	else if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
 	else if (method == "DELETE" && isAllowedMethod(method, route))
 		handleDelete(fullPath);
@@ -322,4 +325,13 @@ bool	Response::handleUriTooLarge(const std::string &uri)
 		return (true);
 	}
 	return (false);
+}
+
+void	Response::handleGetPostCgi(std::string &path, const std::string &method, Route* route)
+{
+	if (path.find(".html") != std::string::npos || isFileOrDir(path) == ISDIR)
+		return (handleGet(path));
+
+	(void)method;
+	(void)route;
 }

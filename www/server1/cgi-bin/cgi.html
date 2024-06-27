@@ -46,13 +46,13 @@
         }
         .navigation {
             position: fixed;
-            top: 60px; /* height of the header */
+            top: 0px; /* height of the header */
             left: 0;
             width: 300px;
-            height: calc(100% - 120px); /* full height minus header and footer */
+            height: calc(100% - 60px); /* full height minus header and footer */
             background: rgba(85, 85, 85, 0.9);
             color: #f5f5f5;
-            padding-top: 40px;
+            padding-top: 120px;
             transform: translateX(-300px);
             transition: transform 0.3s ease-in-out;
             z-index: 1000;
@@ -64,6 +64,7 @@
             margin-bottom: 10px;
         }
         .navigation ul {
+			top: 60px;
             list-style-type: none;
             padding: 0;
             margin: 0;
@@ -168,23 +169,51 @@
 <body>
     <header>
         <h1>CGI</h1>
+		<script>
+			function toggleNavigation() {
+				var navigation = document.getElementById("navigation");
+				navigation.classList.toggle("show");
+			}
+	
+			function listFiles() {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', 'list_file.php', true);
+				xhr.onload = function() {
+					if (this.status == 200) {
+						document.getElementById('fileList').innerHTML = this.responseText;
+					}
+				};
+				xhr.send();
+			}
+	
+			function fetchBitcoinPrice() {
+				var xhr = new XMLHttpRequest();
+				xhr.open('GET', '/cgi-bin/bitcoin_price.sh', true);
+				xhr.onload = function() {
+					if (this.status == 200) {
+						document.getElementById('bitcoinPrice').innerHTML = this.responseText;
+					}
+				};
+				xhr.send();
+			}
+		</script>
     </header>
+	<div class="toggle-button" onclick="toggleNavigation()">
+		Menu
+	</div>
+	<div class="navigation" id="navigation">
+		<ul>
+			<li><a href="../index.html" style="color: inherit;">Accueil</a></li>
+			<li><a href="../authors.html" style="color: inherit;">Auteurs</a></li>
+			<li><a href="cgi.html" style="color: inherit;">CGI</a></li>
+		</ul>
+	</div>
     <div class="content">
-        <div class="navigation" id="navigation">
-            <ul>
-                <li><a href="../index.html" style="color: inherit;">Accueil</a></li>
-                <li><a href="../authors.html" style="color: inherit;">Auteurs</a></li>
-                <li><a href="cgi.html" style="color: inherit;">CGI</a></li>
-            </ul>
-        </div>
         <div class="presentation-section section">
             <p>Voici quelques exemples d'implémentations de CGI.</p>
 			<li><a style="color: inherit;">Mini-Calculatrice Python</a></li>
 			<li><a style="color: inherit;">File manager en PHP</a></li>
 			<li><a style="color: inherit;">Bitcoin price en Bash</a></li>
-        </div>
-        <div class="toggle-button" onclick="toggleNavigation()">
-            Menu
         </div>
         <div class="calculator-section section">
             <h2>Mini-Calculatrice</h2>
@@ -226,34 +255,5 @@
     <footer>
         <p>Webserv Project - École 42</p>
     </footer>
-
-    <script>
-        function toggleNavigation() {
-            var navigation = document.getElementById("navigation");
-            navigation.classList.toggle("show");
-        }
-
-        function listFiles() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'list_file.php', true);
-            xhr.onload = function() {
-                if (this.status == 200) {
-                    document.getElementById('fileList').innerHTML = this.responseText;
-                }
-            };
-            xhr.send();
-        }
-
-        function fetchBitcoinPrice() {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', '/cgi-bin/bitcoin_price.sh', true);
-            xhr.onload = function() {
-                if (this.status == 200) {
-                    document.getElementById('bitcoinPrice').innerHTML = this.responseText;
-                }
-            };
-            xhr.send();
-        }
-    </script>
 </body>
 </html>
