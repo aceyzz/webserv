@@ -54,9 +54,6 @@ class	Response
 		// Orchestrales pour DELETE
 		void	handleDelete(const std::string &path);
 
-		// Orchestrales pour CGI
-		void	handleGetPostCgi(std::string &path, const std::string &method, Route* route);
-
 		// Utils
 		void	buildErrorPage(int errorCode);
 		void	formatResponseToStr();
