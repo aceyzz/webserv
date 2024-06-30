@@ -18,6 +18,7 @@ class	Response
 		Request*							_request;
 		Config*								_config;
 		Socket*								_clientSocket;
+		CgiHandler*							_cgiHandler;
 
 		int									_HTTPcode;
 		std::string							_statusMessage;
@@ -33,7 +34,7 @@ class	Response
 
 	public:
 		Response(Request* request, Config* config, Socket* clientSocket, int kqueue);
-		~Response() { _headers.clear(); };
+		~Response();
 
 		// Getters
 		eResponseStatus						getStatus() const { return (_status); };

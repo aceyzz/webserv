@@ -14,6 +14,15 @@ Response::Response(Request* request, Config* config, Socket* clientSocket, int k
 	_currentChunkOffset = 0;
 	_responseChunk = "";
 	_kqueue = kqueue;
+	_cgiHandler = NULL;
+}
+
+Response::~Response()
+{
+	if (_headers.size() > 0)
+		_headers.clear();
+	if (_cgiHandler)
+		delete _cgiHandler;
 }
 
 void	Response::printResponse()
@@ -193,19 +202,21 @@ void	Response::interpretRequest()
 
 	std::string fullPath = _config->getRoot() + uri;
 
-	// Test du CgiHandler
-	if (route->getCgi())
+	// METHODES gérées: GET, POST et DELETE
+	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
 	{
-		CgiHandler	cgiHandler(route, _request, this, _config, _kqueue);
-		cgiHandler.printCgiHandler();
+		// Test de CGI pour debug
+		if (!_cgiHandler)
+		{
+			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
+			_cgiHandler->printCgiHandler();
+		}
+		_status = READY;
 	}
-
-	// METHODES gérées: GET et DELETE
-	if (method == "GET" && isAllowedMethod(method, route))
+	else if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
 	else if (method == "DELETE" && isAllowedMethod(method, route))
 		handleDelete(fullPath);
-	// Sinon buildErrorPage(405);
 	else
 	{
 		buildErrorPage(405);

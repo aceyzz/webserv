@@ -210,3 +210,11 @@ std::vector<std::string>	split(const std::string &str, const std::string &delim)
 	tokens.push_back(str.substr(start, end));
 	return (tokens);
 }
+
+bool	isCgiRequest(const std::string &uri, const std::string &validExtensions)
+{
+	std::string	extension = getFileExtension(uri);
+	std::vector<std::string>	extensions = split(validExtensions, " ");
+
+	return (std::find(extensions.begin(), extensions.end(), extension) != extensions.end());
+}

@@ -12,3 +12,4 @@ std::string							getFileExtensionFromContentType(const std::string &contentType
 std::string							generateRandomFilename();
 std::string							convertBodyToFileContent(const std::string &body);
 std::vector<std::string>			split(const std::string &str, const std::string &delim);
+bool								isCgiRequest(const std::string &uri, const std::string &validExtensions);
