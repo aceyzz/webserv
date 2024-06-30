@@ -210,8 +210,10 @@ void	Response::interpretRequest()
 		{
 			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
 			_cgiHandler->printCgiHandler();
+			_cgiHandler->setCgiOutputReady(false);// Pour debug seulement
 		}
-		_status = READY;
+		if (_cgiHandler->getCgiOutputReady())
+			_status = READY;
 	}
 	else if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);

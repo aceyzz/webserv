@@ -13,6 +13,7 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	_args = NULL;
 	_responseLine = "";
 	_cgiOutputResult = "";
+	_cgiOutputReady = false;
 
 	initArgs();
 	initEnvp();
