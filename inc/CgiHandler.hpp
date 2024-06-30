@@ -20,8 +20,11 @@ class	CgiHandler
 
 		bool		_cgiOutputReady;
 
-		// Gros fichiers a envoyer au cgi:
-		// Garder la position de l'offset dans le fichier
+		// Gros fichiers a envoyer au STDIN du cgi:
+		// - le parent ecrit morceaux par morceaux dans le pipe du STDIN du cgi
+		// - le cgi lit morceaux par morceaux dans son STDIN
+		// - le cgi ecrit en entier dans son STDOUT (? ou dans un fichier temporaire ?)
+		// - le parent lit morceaux par morceaux dans le pipe de son STDIN
 		size_t		_bytesWritten;
 
 		void	initEnvp();
@@ -38,7 +41,7 @@ class	CgiHandler
 		bool		getCgiOutputReady() { return _cgiOutputReady; };
 
 		// Setters
-		void	setCgiOutputReady(bool ready) { _cgiOutputReady = ready; };
+		void	setCgiOutputReady(bool status) { _cgiOutputReady = status; };
 
 		// Debug
 		void	printCgiHandler();
