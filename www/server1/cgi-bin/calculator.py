@@ -1,58 +1,62 @@
 #!/usr/bin/env python3
 import os
 import sys
-from io import BytesIO
 from urllib.parse import parse_qs
 
+def read_stdin():
+    try:
+        input_stream = sys.stdin.read()  # Lire tout le contenu de stdin
+        return input_stream
+    except Exception as e:
+        return ""
+
 def main():
-    # Simuler les variables d'environnement pour le test local
-    os.environ['REQUEST_METHOD'] = 'POST'
-    os.environ['QUERY_STRING'] = ''
-    os.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-    input_data = b'leftOperand=11&operator=%2B&rightOperand=5'
-    os.environ['CONTENT_LENGTH'] = str(len(input_data))
+    # Lire les donnees du formulaire
+    content_length = int(os.environ.get('CONTENT_LENGTH', 0))
 
-    # Simuler l'entrée standard pour les données du formulaire
-    sys.stdin = BytesIO(input_data)
+    if content_length > 0:
+        post_data = read_stdin()
 
-    # Lire les données du formulaire
-    content_length = int(os.environ['CONTENT_LENGTH'])
-    post_data = sys.stdin.read(content_length).decode('utf-8')
-    form = parse_qs(post_data)
+        if post_data:
+            form = parse_qs(post_data)
 
-    left_operand = form.get('leftOperand', [None])[0]
-    operator = form.get('operator', [None])[0]
-    right_operand = form.get('rightOperand', [None])[0]
+            left_operand = form.get('leftOperand', [None])[0]
+            operator = form.get('operator', [None])[0]
+            right_operand = form.get('rightOperand', [None])[0]
 
-    # Nettoyer les valeurs d'entrée
-    left_operand = left_operand.strip() if left_operand else None
-    operator = operator.strip() if operator else None
-    right_operand = right_operand.strip() if right_operand else None
+            # Nettoyer les valeurs d'entree
+            left_operand = left_operand.strip() if left_operand else None
+            operator = operator.strip() if operator else None
+            right_operand = right_operand.strip() if right_operand else None
 
-    # Vérifier que les opérandes ne sont pas None
-    if left_operand is None or operator is None or right_operand is None:
-        result = 'Erreur : Données du formulaire manquantes'
-    else:
-        try:
-            # Conversion des opérandes en nombres entiers ou flottants
-            left_operand = float(left_operand) if '.' in left_operand else int(left_operand)
-            right_operand = float(right_operand) if '.' in right_operand else int(right_operand)
-
-            # Calcul en fonction de l'opérateur
-            if operator == '+':
-                result = left_operand + right_operand
-            elif operator == '-':
-                result = left_operand - right_operand
-            elif operator == '*':
-                result = left_operand * right_operand
-            elif operator == '/':
-                result = left_operand / right_operand if right_operand != 0 else 'Erreur : Division par zéro'
+            # Verifier que les operandes ne sont pas None
+            if left_operand is None or operator is None or right_operand is None:
+                result = 'Erreur : Donnees du formulaire manquantes'
             else:
-                result = f'Erreur : Opérateur invalide ({operator})'
-        except ValueError:
-            result = 'Erreur : Valeur incorrecte'
+                try:
+                    # Conversion des operandes en nombres entiers ou flottants
+                    left_operand = float(left_operand) if '.' in left_operand else int(left_operand)
+                    right_operand = float(right_operand) if '.' in right_operand else int(right_operand)
 
-    # Affichage des résultats
+                    # Calcul en fonction de l'operateur
+                    if operator == '+':
+                        result = left_operand + right_operand
+                    elif operator == '-':
+                        result = left_operand - right_operand
+                    elif operator == '*':
+                        result = left_operand * right_operand
+                    elif operator == '/':
+                        result = left_operand / right_operand if right_operand != 0 else 'Erreur : Division par zero'
+                    else:
+                        result = f'Erreur : Operateur invalide ({operator})'
+                except ValueError:
+                    result = 'Erreur : Valeur incorrecte'
+        else:
+            result = 'Erreur : Problème lors de la lecture des donnees'
+    else:
+        result = 'Erreur : Pas de donnees envoyees'
+
+    # Affichage des resultats
     print("Content-type: text/html\n")
     print(f"""
     <!DOCTYPE html>
@@ -88,7 +92,7 @@ def main():
     <body>
         <div class="result-container">
             <h1>Calculator Result</h1>
-            <div class="result">Résultat : {result}</div>
+            <div class="result">Resultat : {result}</div>
         </div>
     </body>
     </html>

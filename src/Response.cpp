@@ -204,24 +204,14 @@ void	Response::interpretRequest()
 
 	// METHODES gérées: GET, POST et DELETE
 	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
-	{
-		// Test de CGI pour debug
-		if (!_cgiHandler)
-		{
-			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
-			// DEBUG
-			// _cgiHandler->printCgiHandler();
-			// _cgiHandler->setCgiOutputReady(true);
-		}
-		if (_cgiHandler->getCgiLaunched() == false)
-		{
-			_cgiHandler->launchCgi();
-			_cgiHandler->setCgiLaunched(true);
-		}
-		_cgiHandler->monitorCgi();
-		if (_cgiHandler->getCgiOutputReady())
-			_status = READY;
-	}
+    {
+        // Test de CGI pour debug
+        if (!_cgiHandler)
+            _cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
+        _cgiHandler->handleCgi();
+        if (_cgiHandler->getCgiOutputReady())
+            _status = READY;
+    }
 	else if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
 	else if (method == "DELETE" && isAllowedMethod(method, route))
@@ -233,7 +223,7 @@ void	Response::interpretRequest()
 	}
 
 	// Structurer la reponse en string a partir des datas de la classe pour envoi final
-	if (_status == READY)
+	if (_status == READY && _resultResponse.empty())
 		formatResponseToStr();
 
 	// Ajout de l'icone favicon si le content-type est du html

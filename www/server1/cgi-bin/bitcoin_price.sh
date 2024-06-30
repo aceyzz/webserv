@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Indicate that the content returned is HTML
-echo "HTTP/1.1 200 OK"
 echo "Content-type: text/html"
 echo ""
 
@@ -14,15 +13,6 @@ price=$(echo $response | grep -o '"usd":[0-9]*' | cut -d ':' -f 2)
 # Generate the HTML page with modern styling
 echo "<!DOCTYPE html>"
 echo "<html>"
-echo "<head>"
-echo "<style>"
-echo "body { background-color: #222; color: #fff; font-family: Arial, sans-serif; }"
-echo ".container { display: flex; justify-content: center; align-items: center; height: 100vh; }"
-echo ".content { text-align: center; }"
-echo "h1 { font-size: 36px; margin-bottom: 20px; }"
-echo "h2 { font-size: 24px; }"
-echo "</style>"
-echo "</head>"
 echo "<body>"
 echo "<div class='container'>"
 echo "<div class='content'>"

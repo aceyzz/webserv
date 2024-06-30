@@ -13,18 +13,11 @@ class	Response
 {
 	private:
 		int									_kqueue;
-		eResponseStatus						_status;
 
 		Request*							_request;
 		Config*								_config;
 		Socket*								_clientSocket;
 		CgiHandler*							_cgiHandler;
-
-		int									_HTTPcode;
-		std::string							_statusMessage;
-		std::map<std::string, std::string>	_headers;
-		std::string							_body;
-		std::string							_resultResponse;
 
 		size_t								_bytesSent;
 		size_t								_totalBytes;
@@ -33,6 +26,14 @@ class	Response
 		std::string							_responseChunk;
 
 	public:
+
+		eResponseStatus						_status;
+		int									_HTTPcode;
+		std::string							_statusMessage;
+		std::map<std::string, std::string>	_headers;
+		std::string							_body;
+		std::string							_resultResponse;
+
 		Response(Request* request, Config* config, Socket* clientSocket, int kqueue);
 		~Response();
 
@@ -45,6 +46,8 @@ class	Response
 		std::string							getBody() const { return (_body); };
 		std::string							getStatusMessage() const { return (_statusMessage); };
 		Socket*								getClientSocket() const { return (_clientSocket); };
+
+		void	setResultResponse(std::string resultResponse) { _resultResponse = resultResponse; };
 
 		// Setters
 		void	setStatus(eResponseStatus status) { _status = status; };
