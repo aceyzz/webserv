@@ -11,6 +11,7 @@ class	Cgi;
 class	Socket;
 class	Request;
 class	Response;
+class	CgiHandler;
 
 #include "ParseConfig.hpp"
 #include "Config.hpp"
@@ -19,6 +20,7 @@ class	Response;
 #include "Socket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "CgiHandler.hpp"
 
 class	Webserver
 {

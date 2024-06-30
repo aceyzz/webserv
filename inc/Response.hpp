@@ -43,6 +43,10 @@ class	Response
 		std::map<std::string, std::string>	getHeaders() const { return (_headers); };
 		std::string							getBody() const { return (_body); };
 		std::string							getStatusMessage() const { return (_statusMessage); };
+		Socket*								getClientSocket() const { return (_clientSocket); };
+
+		// Setters
+		void	setStatus(eResponseStatus status) { _status = status; };
 
 		// Methods
 		void	interpretRequest();

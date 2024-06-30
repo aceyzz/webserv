@@ -119,6 +119,28 @@ bool	Response::isAllowedMethod(const std::string &method, Route *route)
 	return (std::find(allowedMethods.begin(), allowedMethods.end(), method) != allowedMethods.end());
 }
 
+bool	Response::handleRequestTooLarge()
+{
+	if (_request->getBody().size() > (size_t)_config->getMaxBodySize())
+	{
+		buildErrorPage(413);
+		_status = READY;
+		return (true);
+	}
+	return (false);
+}
+
+bool	Response::handleUriTooLarge(const std::string &uri)
+{
+	if (uri.size() > MAX_URI_SIZE)
+	{
+		buildErrorPage(414);
+		_status = READY;
+		return (true);
+	}
+	return (false);
+}
+
 int		Response::isFileOrDir(const std::string &str)
 {
 	struct stat	buf;
@@ -170,6 +192,13 @@ void	Response::interpretRequest()
 	}
 
 	std::string fullPath = _config->getRoot() + uri;
+
+	// Test du CgiHandler
+	if (route->getCgi())
+	{
+		CgiHandler	cgiHandler(route, _request, this, _config, _kqueue);
+		cgiHandler.printCgiHandler();
+	}
 
 	// METHODES gérées: GET et DELETE
 	if (method == "GET" && isAllowedMethod(method, route))
@@ -300,26 +329,4 @@ void	Response::sendResponse()
 		_status = WRITING;
 	else
 		_status = SENT;
-}
-
-bool	Response::handleRequestTooLarge()
-{
-	if (_request->getBody().size() > (size_t)_config->getMaxBodySize())
-	{
-		buildErrorPage(413);
-		_status = READY;
-		return (true);
-	}
-	return (false);
-}
-
-bool	Response::handleUriTooLarge(const std::string &uri)
-{
-	if (uri.size() > MAX_URI_SIZE)
-	{
-		buildErrorPage(414);
-		_status = READY;
-		return (true);
-	}
-	return (false);
 }
