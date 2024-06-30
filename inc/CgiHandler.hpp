@@ -14,7 +14,6 @@ class	CgiHandler
 		char**		_envp;
 		char**		_args;
 
-		std::string	_bodyCleaned;
 		std::string	_responseLine;
 		std::string	_cgiOutputResult;
 		int			_pipeFd[2];
