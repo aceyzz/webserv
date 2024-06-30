@@ -209,9 +209,16 @@ void	Response::interpretRequest()
 		if (!_cgiHandler)
 		{
 			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
-			_cgiHandler->printCgiHandler();
-			_cgiHandler->setCgiOutputReady(false);// Pour debug seulement
+			// DEBUG
+			// _cgiHandler->printCgiHandler();
+			// _cgiHandler->setCgiOutputReady(true);
 		}
+		if (_cgiHandler->getCgiLaunched() == false)
+		{
+			_cgiHandler->launchCgi();
+			_cgiHandler->setCgiLaunched(true);
+		}
+		_cgiHandler->monitorCgi();
 		if (_cgiHandler->getCgiOutputReady())
 			_status = READY;
 	}

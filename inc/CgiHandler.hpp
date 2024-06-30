@@ -19,6 +19,7 @@ class	CgiHandler
 		int			_pipeFd[2];
 
 		bool		_cgiOutputReady;
+		bool		_cgiLaunched;
 
 		// Gros fichiers a envoyer au STDIN du cgi:
 		// - le parent ecrit morceaux par morceaux dans le pipe du STDIN du cgi
@@ -39,10 +40,14 @@ class	CgiHandler
 		std::string	getResponseLine() { return _responseLine; };
 		std::string	getCgiOutputResult() { return _cgiOutputResult; };
 		bool		getCgiOutputReady() { return _cgiOutputReady; };
-
+		bool		getCgiLaunched() { return _cgiLaunched; };
 		// Setters
 		void	setCgiOutputReady(bool status) { _cgiOutputReady = status; };
-
+		void	setCgiLaunched(bool status) { _cgiLaunched = status; };
 		// Debug
 		void	printCgiHandler();
+
+		// Methods
+		void	launchCgi();
+		void	monitorCgi();
 };

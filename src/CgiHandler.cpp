@@ -15,6 +15,7 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	_cgiOutputResult = "";
 	_cgiOutputReady = false;
 	_bytesWritten = 0;
+	_cgiLaunched = false;
 
 	initArgs();
 	initEnvp();
@@ -131,4 +132,12 @@ void	CgiHandler::printCgiHandler()
 	std::cout << CYAN "  _responseLine: " RST << _responseLine << std::endl;
 	std::cout << CYAN "  _cgiOutputResult: " RST << _cgiOutputResult << std::endl;
 	std::cout << std::endl;
+}
+
+void	CgiHandler::launchCgi()
+{
+}
+
+void	CgiHandler::monitorCgi()
+{
 }
