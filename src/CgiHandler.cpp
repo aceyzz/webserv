@@ -14,6 +14,7 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	_responseLine = "";
 	_cgiOutputResult = "";
 	_cgiOutputReady = false;
+	_bytesWritten = 0;
 
 	initArgs();
 	initEnvp();

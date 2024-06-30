@@ -20,6 +20,10 @@ class	CgiHandler
 
 		bool		_cgiOutputReady;
 
+		// Gros fichiers a envoyer au cgi:
+		// Garder la position de l'offset dans le fichier
+		size_t		_bytesWritten;
+
 		void	initEnvp();
 		void	initArgs();
 		void	initPipe();
