@@ -9,7 +9,7 @@ if (is_dir($dir)) {
     echo "<ul style='list-style-type: none;'>"; // Use unordered list without bullet points
     foreach ($files as $file) {
         if ($file != "." && $file != "..") {
-            echo "<li><a href='".$base_url.$file."' download style='text-decoration: none; color: white;'>".$file."</a></li>\n";
+			echo "<li><a href='".$base_url.$file."' target='_blank' style='text-decoration: none; color: white;'>".$file."</a></li>\n";
         }
     }
     echo "</ul>";

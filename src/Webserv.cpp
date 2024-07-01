@@ -196,6 +196,7 @@ bool	Webserver::receiveRequest(int clientFD)
 {
 	char	buffer[BUFFER_SIZE];
 	ssize_t	nbBytes = recv(clientFD, buffer, sizeof(buffer) - 1, 0);
+	static ssize_t	nbBytesTotal = 0;
 
 	if (nbBytes <= 0)
 	{
@@ -224,14 +225,39 @@ bool	Webserver::receiveRequest(int clientFD)
 
 	request->appendRawRequest(buffer);
 
-	if (nbBytes == 0 || static_cast<size_t>(nbBytes) < sizeof(buffer) - 1)
+	// Find the Content-Length in the headers
+	std::string rawRequestLocal = request->getRawRequest();
+	size_t posHeadersEnd = rawRequestLocal.find("\r\n\r\n");
+	size_t contentLength = 0;
+	if (posHeadersEnd != std::string::npos)
 	{
-		request->setStatus(COMPLETE);
-		return (true);
+		std::string headers = rawRequestLocal.substr(0, posHeadersEnd);
+		size_t contentLengthPos = headers.find("Content-Length: ");
+		if (contentLengthPos != std::string::npos)
+		{
+			contentLengthPos += 16; // length of "Content-Length: "
+			size_t endPos = headers.find("\r\n", contentLengthPos);
+			if (endPos != std::string::npos)
+			{
+				std::string contentLengthStr = headers.substr(contentLengthPos, endPos - contentLengthPos);
+				try
+				{
+					contentLength = std::stoul(contentLengthStr);
+				}
+				catch (const std::exception& e) { std::cerr << "Failed to parse Content-Length: " << e.what() << std::endl; }
+			}
+		}
 	}
 
 	if (DEBUG)
 		std::cout << "Received " << nbBytes << " bytes from client: " << request->getClientIp() << " (FD: " << clientFD << ")" << std::endl;
+
+	nbBytesTotal += nbBytes;
+	if (contentLength == 0 || static_cast<size_t>(nbBytesTotal) >= contentLength)
+	{
+		request->setStatus(COMPLETE);
+		return (true);
+	}
 
 	return (false);
 }
