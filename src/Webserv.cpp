@@ -252,6 +252,9 @@ bool	Webserver::receiveRequest(int clientFD)
 	if (DEBUG)
 		std::cout << "Received " << nbBytes << " bytes from client: " << request->getClientIp() << " (FD: " << clientFD << ")" << std::endl;
 
+
+	// CETTE CONDTION DOIT ETRE AJSUTEE EN FONCTION SI LA REQUETE EST UNE MULTIPART
+	// JUSQUA MAINTENANT, ELLE STOPPE LA RECEPTION MALGRE QUE LE BODY N'EST PAS ENTIEREMTN RECU
 	nbBytesTotal += nbBytes;
 	if (contentLength == 0 || static_cast<size_t>(nbBytesTotal) >= contentLength)
 	{
