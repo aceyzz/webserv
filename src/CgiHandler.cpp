@@ -171,6 +171,13 @@ void	CgiHandler::printCgiHandler()
 
 void CgiHandler::handleCgi()
 {
+	if (DEBUG)
+	{
+		std::cout << GOLD "CGIHANDLER: " RST << std::endl;
+		std::cout << CYAN "Body sent into the pipe to the CGI: " RST << std::endl;
+		std::cout << _request->getBody() << std::endl;
+	}
+
     pid_t pid = fork();
     if (pid == -1)
     {
