@@ -57,54 +57,84 @@ function createHtmlResponse($message, $success = true) {
     </html>";
 }
 
-// Read the raw POST data from stdin
-$rawData = file_get_contents('php://input');
-logMessage("Raw POST data length: " . strlen($rawData));
+// Function to read raw POST data from stdin
+function getRawPostData() {
+    $rawData = '';
+    while ($chunk = fread(STDIN, 1024)) {
+        $rawData .= $chunk;
+    }
+    return $rawData;
+}
 
-// Get the boundary from the content type header
-$contentType = getenv('CONTENT_TYPE');
-if (preg_match('/boundary=(.*)$/', $contentType, $matches)) {
-    $boundary = $matches[1];
-    logMessage("Boundary found: $boundary");
+// Function to extract the boundary from the content type header
+function getBoundary($contentType) {
+    if (preg_match('/boundary=(.*)$/', $contentType, $matches)) {
+        return $matches[1];
+    }
+    return null;
+}
 
-    // Split the raw data by the boundary
-    $parts = preg_split('/--' . preg_quote($boundary, '/') . '/', $rawData);
+function parseMultipartData($rawData, $boundary) {
+    $boundary = '--' . $boundary;
+    $endBoundary = $boundary . '--';
+    $parts = explode($boundary, $rawData);
+
     foreach ($parts as $part) {
-        if (empty($part)) {
+        if (empty(trim($part)) || trim($part) == '--') {
             continue;
         }
-
-        // Parse each part
-        if (preg_match('/Content-Disposition:.*name="fileToUpload"; filename="(.*)"/', $part, $matches)) {
+        if (preg_match('/Content-Disposition: form-data; name="fileToUpload"; filename="([^"]+)"/', $part, $matches)) {
             $filename = $matches[1];
-            logMessage("Filename found: $filename");
-
-            // Extract the file data
-            $fileDataStart = strpos($part, "\r\n\r\n") + 4;
-            $fileDataEnd = strrpos($part, "\r\n");
-            $fileData = substr($part, $fileDataStart, $fileDataEnd - $fileDataStart);
-
-            // Generate a new file name
-            $timestamp = time();
-            $newFileName = "user_{$timestamp}_{$filename}";
-            $destination = './www/server1/images/' . $newFileName;
-
-            // Save the file
-            if (file_put_contents($destination, $fileData) !== false) {
-                logMessage("File uploaded successfully: $newFileName");
-                echo createHtmlResponse("File uploaded successfully: $newFileName");
-                exit;
-            } else {
-                logMessage("Failed to save uploaded file.");
-                echo createHtmlResponse("Failed to save uploaded file.", false);
-                exit;
-            }
+            $part = preg_replace('/Content-Disposition:.*filename="[^"]+"/', '', $part);
+            $part = preg_replace('/Content-Type:.*\s/', '', $part, 1);
+            $fileContent = trim($part);
+            return [$filename, $fileContent];
         }
     }
-    logMessage("No valid file part found in the request.");
-    echo createHtmlResponse("No valid file part found in the request.", false);
+    return [null, null];
+}
+
+// Function to save the file data to the specified directory
+function saveFile($filename, $fileData) {
+    $timestamp = time();
+    $newFileName = "user_{$timestamp}_{$filename}";
+    $destination = './www/server1/images/' . $newFileName;
+    if (file_put_contents($destination, $fileData) !== false) {
+        logMessage("File uploaded successfully: $newFileName");
+        return $newFileName;
+    } else {
+        logMessage("Failed to save uploaded file.");
+        return null;
+    }
+}
+
+// Main script execution
+$contentType = getenv('CONTENT_TYPE');
+$rawData = getRawPostData();
+logMessage("Raw POST data length: " . strlen($rawData));
+
+$boundary = getBoundary($contentType);
+if ($boundary) {
+    logMessage("Boundary found: $boundary");
+    list($filename, $fileData) = parseMultipartData($rawData, $boundary);
+
+    if ($filename && $fileData) {
+        $savedFileName = saveFile($filename, $fileData);
+        if ($savedFileName) {
+            echo createHtmlResponse("File uploaded successfully: $savedFileName");
+            exit;
+        } else {
+            echo createHtmlResponse("Failed to save uploaded file.", false);
+            exit;
+        }
+    } else {
+        logMessage("No valid file part found in the request.");
+        echo createHtmlResponse("No valid file part found in the request.", false);
+        exit;
+    }
 } else {
     logMessage("No boundary found in the content type.");
     echo createHtmlResponse("No boundary found in the content type.", false);
+    exit;
 }
 ?>

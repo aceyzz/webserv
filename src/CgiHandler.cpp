@@ -142,7 +142,6 @@ CgiHandler::~CgiHandler()
 		close(_pipeFdCgi[0]);
 	if (_pipeFdCgi[1] != -1)
 		close(_pipeFdCgi[1]);
-	std::cout << GRY1 "CgiHandler destroyed" RST << std::endl;
 }
 
 void	CgiHandler::printCgiHandler()
@@ -173,9 +172,8 @@ void CgiHandler::handleCgi()
 {
 	if (DEBUG)
 	{
-		std::cout << GOLD "CGIHANDLER: " RST << std::endl;
-		std::cout << CYAN "Body sent into the pipe to the CGI: " RST << std::endl;
-		std::cout << _request->getBody() << std::endl;
+		printCgiHandler();
+		std::cout << CYAN "Body sent into the pipe: " RST << std::endl << _request->getBody() << std::endl;
 	}
 
     pid_t pid = fork();
