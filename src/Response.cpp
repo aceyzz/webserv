@@ -177,7 +177,6 @@ void	Response::interpretRequest()
 	Route* route = _config->getRoute(uri);
 	if (!route)
 	{
-		std::cout << "Route not found for URI: " << uri << std::endl;
 		buildErrorPage(404);
 		_status = READY;
 		return (formatResponseToStr());
@@ -196,7 +195,6 @@ void	Response::interpretRequest()
 	if (uri == "/")
 	{
 		uri += _config->getIndex();
-		// MAJ du request avec la nouvelle uri
 		_request->setUri(uri);
 	}
 
@@ -205,7 +203,6 @@ void	Response::interpretRequest()
 	// METHODES gérées: GET, POST et DELETE
 	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
     {
-        // Test de CGI pour debug
         if (!_cgiHandler)
             _cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
         _cgiHandler->handleCgi();

@@ -253,7 +253,6 @@ void CgiHandler::handleCgi()
     }
 }
 
-
 std::string	CgiHandler::extractContentTypeCgiOutput()
 {
 	std::string contentType = _cgiOutputResult.substr(0, _cgiOutputResult.find("\n"));
