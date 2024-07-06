@@ -20,6 +20,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <vector>
 
 #include "colors.hpp"
@@ -27,7 +28,7 @@
 
 #define DEBUG 0
 #define MAX_EVENTS 1000
-#define MAX_LISTEN 255
+#define MAX_LISTEN 1000
 #define MAX_URI_SIZE 2000
 #define BUFFER_SIZE 1024
 #define CHUNK_SIZE 4096
@@ -35,3 +36,4 @@
 #define ISFILE 1
 #define ISDIR 2
 #define FAVICON "icon.ico"
+#define TIME_TIMEOUT 10

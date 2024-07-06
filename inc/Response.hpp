@@ -5,6 +5,7 @@
 enum eResponseStatus
 {
 	WRITING = 69,
+	BUILDING,
 	READY,
 	SENT
 };
@@ -24,6 +25,9 @@ class	Response
 
 		size_t								_currentChunkOffset;
 		std::string							_responseChunk;
+
+		bool								_streamer;
+		std::ifstream						*_fileStream;
 
 	public:
 

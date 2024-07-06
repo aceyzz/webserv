@@ -74,6 +74,10 @@ class	Webserver
 		void	acceptNewClient(int serverFD);
 		Config*	getConfigForClient(int clientFD);
 
+		// Zombie et Timeout
+		bool	isZombie(int clientFD);
+		void	checkRequestTimeouts();
+
 		// Debug
 		void	printConfigs();
 		void	printSockets();

@@ -15,6 +15,8 @@ Response::Response(Request* request, Config* config, Socket* clientSocket, int k
 	_responseChunk = "";
 	_kqueue = kqueue;
 	_cgiHandler = NULL;
+	_streamer = false;
+	_fileStream = NULL;
 }
 
 Response::~Response()
@@ -195,6 +197,7 @@ void	Response::interpretRequest()
 	if (uri == "/")
 	{
 		uri += _config->getIndex();
+		// MAJ du request avec la nouvelle uri
 		_request->setUri(uri);
 	}
 
@@ -203,6 +206,7 @@ void	Response::interpretRequest()
 	// METHODES gérées: GET, POST et DELETE
 	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
     {
+        // Test de CGI pour debug
         if (!_cgiHandler)
             _cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
         _cgiHandler->handleCgi();
@@ -221,11 +225,12 @@ void	Response::interpretRequest()
 
 	// Structurer la reponse en string a partir des datas de la classe pour envoi final
 	if (_status == READY && _resultResponse.empty())
+	{
 		formatResponseToStr();
-
-	// Ajout de l'icone favicon si le content-type est du html
-	if (_headers["Content-Type"] == "text/html")
-		_resultResponse = addFaviconToResponse(_resultResponse);
+		// Ajout de l'icone favicon si le content-type est du html
+		if (_headers["Content-Type"] == "text/html")
+			_resultResponse = addFaviconToResponse(_resultResponse);
+	}
 }
 
 void	Response::handleGet(const std::string &path)
@@ -236,14 +241,32 @@ void	Response::handleGet(const std::string &path)
 	{
 		case (ISFILE):
 		{
-			std::string content = fileToStr(path);
+		if (!_streamer)
+		{
+			_fileStream = new std::ifstream(path);
+			_streamer = true;
+
 			std::string extension = getFileExtension(path);
-			_body = content;
 			_HTTPcode = 200;
 			_headers["Content-Type"] = getContentType(extension);
 			_statusMessage = "OK";
+		}
+		char buffer[CHUNK_SIZE];
+		_fileStream->read(buffer, CHUNK_SIZE);
+		std::streamsize bytesRead = _fileStream->gcount(); // Nombre de caractères réellement lus
+		_body.append(buffer, bytesRead); // Ajouter uniquement les caractères lus au body
+
+		if (_fileStream->eof())
+		{
 			_status = READY;
-			return;
+			_streamer = false;
+			_fileStream->close();
+			delete _fileStream;
+		}
+		else
+			_status = BUILDING;
+
+		return;
 		}
 		case (ISDIR):
 		{
