@@ -205,14 +205,14 @@ void	Response::interpretRequest()
 
 	// METHODES gérées: GET, POST et DELETE
 	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
-    {
-        // Test de CGI pour debug
-        if (!_cgiHandler)
-            _cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
-        _cgiHandler->handleCgi();
-        if (_cgiHandler->getCgiOutputReady())
-            _status = READY;
-    }
+	{
+		// Test de CGI pour debug
+		if (!_cgiHandler)
+			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
+		_cgiHandler->handleCgi();
+		if (_cgiHandler->getCgiOutputReady())
+			_status = READY;
+	}
 	else if (method == "GET" && isAllowedMethod(method, route))
 		handleGet(fullPath);
 	else if (method == "DELETE" && isAllowedMethod(method, route))

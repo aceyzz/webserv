@@ -119,12 +119,12 @@ std::string	addFaviconToResponse(const std::string& response)
 
 std::string	getFileExtensionFromContentType(const std::string &contentType)
 {
-    if (contentType == "image/jpeg") return ".jpg";
-    if (contentType == "image/png") return ".png";
-    if (contentType == "image/gif") return ".gif";
-    if (contentType == "text/html") return ".html";
-    if (contentType == "text/plain") return ".txt";
-    if (contentType == "application/pdf") return ".pdf";
+	if (contentType == "image/jpeg") return ".jpg";
+	if (contentType == "image/png") return ".png";
+	if (contentType == "image/gif") return ".gif";
+	if (contentType == "text/html") return ".html";
+	if (contentType == "text/plain") return ".txt";
+	if (contentType == "application/pdf") return ".pdf";
 	if (contentType == "application/zip") return ".zip";
 	if (contentType == "application/x-tar") return ".tar";
 	if (contentType == "application/gzip") return ".gz";
@@ -153,46 +153,46 @@ std::string	generateRandomFilename()
 std::string	convertBodyToFileContent(const std::string &body)
 {
 	std::string fileContent;
-    std::string delimiter;
-    std::string endDelimiter;
+	std::string delimiter;
+	std::string endDelimiter;
 
-    // Find the boundary delimiter
-    size_t boundaryPos = body.find("boundary=");
-    if (boundaryPos == std::string::npos) {
-        return body; // No boundary found, return the entire body as file content
-    }
-    boundaryPos += 9; // Skip "boundary="
-    size_t boundaryEndPos = body.find("\r\n", boundaryPos);
-    if (boundaryEndPos == std::string::npos) {
-        return body; // Invalid boundary format, return the entire body as file content
-    }
-    delimiter = "--" + body.substr(boundaryPos, boundaryEndPos - boundaryPos);
-    endDelimiter = delimiter + "--";
+	// Find the boundary delimiter
+	size_t boundaryPos = body.find("boundary=");
+	if (boundaryPos == std::string::npos) {
+		return body; // No boundary found, return the entire body as file content
+	}
+	boundaryPos += 9; // Skip "boundary="
+	size_t boundaryEndPos = body.find("\r\n", boundaryPos);
+	if (boundaryEndPos == std::string::npos) {
+		return body; // Invalid boundary format, return the entire body as file content
+	}
+	delimiter = "--" + body.substr(boundaryPos, boundaryEndPos - boundaryPos);
+	endDelimiter = delimiter + "--";
 
-    // Find the start of the file content
-    size_t fileStartPos = body.find(delimiter, boundaryEndPos);
-    if (fileStartPos == std::string::npos) {
-        return body; // No file content found, return the entire body as file content
-    }
-    fileStartPos += delimiter.size();
-    fileStartPos = body.find("\r\n\r\n", fileStartPos);
-    if (fileStartPos == std::string::npos) {
-        return body; // Invalid format, return the entire body as file content
-    }
-    fileStartPos += 4; // Skip the header terminator
+	// Find the start of the file content
+	size_t fileStartPos = body.find(delimiter, boundaryEndPos);
+	if (fileStartPos == std::string::npos) {
+		return body; // No file content found, return the entire body as file content
+	}
+	fileStartPos += delimiter.size();
+	fileStartPos = body.find("\r\n\r\n", fileStartPos);
+	if (fileStartPos == std::string::npos) {
+		return body; // Invalid format, return the entire body as file content
+	}
+	fileStartPos += 4; // Skip the header terminator
 
-    // Find the end of the file content
-    size_t fileEndPos = body.find("\r\n" + delimiter, fileStartPos);
-    if (fileEndPos == std::string::npos) {
-        fileEndPos = body.find("\r\n" + endDelimiter, fileStartPos);
-        if (fileEndPos == std::string::npos) {
-            return body; // Invalid format, return the entire body as file content
-        }
-    }
+	// Find the end of the file content
+	size_t fileEndPos = body.find("\r\n" + delimiter, fileStartPos);
+	if (fileEndPos == std::string::npos) {
+		fileEndPos = body.find("\r\n" + endDelimiter, fileStartPos);
+		if (fileEndPos == std::string::npos) {
+			return body; // Invalid format, return the entire body as file content
+		}
+	}
 
-    // Extract the file content
-    fileContent = body.substr(fileStartPos, fileEndPos - fileStartPos);
-    return fileContent;
+	// Extract the file content
+	fileContent = body.substr(fileStartPos, fileEndPos - fileStartPos);
+	return fileContent;
 }
 
 std::vector<std::string>	split(const std::string &str, const std::string &delim)

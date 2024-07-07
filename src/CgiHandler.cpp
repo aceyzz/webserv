@@ -48,28 +48,28 @@ void	CgiHandler::initEnvp()
 
 void	CgiHandler::initArgs()
 {
-    // Init des args
-    Cgi *cgi = _route->getCgi();
-    std::vector<std::string> path = split(cgi->getPath(), " ");
-    std::vector<std::string> extensions = split(cgi->getExtension(), " ");
-    
-    // Stocker chaque extension avec son path
-    std::map<std::string, std::string> cgiPairs;
-    for (size_t i = 0; i < extensions.size(); i++)
-        cgiPairs[extensions[i]] = path[i];
-    
-    // Determiner la paire correspondante avec l'extension contenue dans l'uri
-    std::string extension = getFileExtension(_request->getUri());
-    std::string cgiPath = cgiPairs[extension];
-    
-    // Correction du chemin pour inclure le répertoire root du serveur
-    std::string scriptPath = _config->getRoot() + _request->getUri();
+	// Init des args
+	Cgi *cgi = _route->getCgi();
+	std::vector<std::string> path = split(cgi->getPath(), " ");
+	std::vector<std::string> extensions = split(cgi->getExtension(), " ");
+	
+	// Stocker chaque extension avec son path
+	std::map<std::string, std::string> cgiPairs;
+	for (size_t i = 0; i < extensions.size(); i++)
+		cgiPairs[extensions[i]] = path[i];
+	
+	// Determiner la paire correspondante avec l'extension contenue dans l'uri
+	std::string extension = getFileExtension(_request->getUri());
+	std::string cgiPath = cgiPairs[extension];
+	
+	// Correction du chemin pour inclure le répertoire root du serveur
+	std::string scriptPath = _config->getRoot() + _request->getUri();
 
-    // Creation du tableau d'args
-    _args = new char*[3];
-    _args[0] = strdup(cgiPath.c_str());
-    _args[1] = strdup(scriptPath.c_str());
-    _args[2] = NULL;
+	// Creation du tableau d'args
+	_args = new char*[3];
+	_args[0] = strdup(cgiPath.c_str());
+	_args[1] = strdup(scriptPath.c_str());
+	_args[2] = NULL;
 }
 
 void	CgiHandler::initPipe()
@@ -176,81 +176,81 @@ void CgiHandler::handleCgi()
 		std::cout << CYAN "Body sent into the pipe: " RST << std::endl << _request->getBody() << std::endl;
 	}
 
-    pid_t pid = fork();
-    if (pid == -1)
-    {
-        std::cerr << "Error: fork() failed" << std::endl;
-        _response->buildErrorPage(500);
-        _response->setStatus(READY);
-        _response->formatResponseToStr();
-        return;
-    }
-    if (pid == 0) // Enfant
-    {
-        close(_pipeFd[1]);
-        dup2(_pipeFd[0], STDIN_FILENO);
-        close(_pipeFd[0]);
+	pid_t pid = fork();
+	if (pid == -1)
+	{
+		std::cerr << "Error: fork() failed" << std::endl;
+		_response->buildErrorPage(500);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return;
+	}
+	if (pid == 0) // Enfant
+	{
+		close(_pipeFd[1]);
+		dup2(_pipeFd[0], STDIN_FILENO);
+		close(_pipeFd[0]);
 
-        close(_pipeFdCgi[0]);
-        dup2(_pipeFdCgi[1], STDOUT_FILENO);
-        close(_pipeFdCgi[1]);
+		close(_pipeFdCgi[0]);
+		dup2(_pipeFdCgi[1], STDOUT_FILENO);
+		close(_pipeFdCgi[1]);
 
-        execve(_args[0], _args, _envp);
-        exit(EXIT_FAILURE);
-    }
-    else // Parent
-    {
-        close(_pipeFd[0]);
-        close(_pipeFdCgi[1]);
+		execve(_args[0], _args, _envp);
+		exit(EXIT_FAILURE);
+	}
+	else // Parent
+	{
+		close(_pipeFd[0]);
+		close(_pipeFdCgi[1]);
 
-        // Écriture complète du body de la requête dans le pipe
-        ssize_t written = write(_pipeFd[1], _request->getBody().c_str(), _request->getBody().size());
-        if (written == -1)
-        {
-            std::cerr << "Error: write() failed" << std::endl;
-            _response->buildErrorPage(500);
-            _response->setStatus(READY);
-            _response->formatResponseToStr();
-            return;
-        }
-        close(_pipeFd[1]); // Fermer le descripteur d'écriture après avoir tout envoyé
+		// Écriture complète du body de la requête dans le pipe
+		ssize_t written = write(_pipeFd[1], _request->getBody().c_str(), _request->getBody().size());
+		if (written == -1)
+		{
+			std::cerr << "Error: write() failed" << std::endl;
+			_response->buildErrorPage(500);
+			_response->setStatus(READY);
+			_response->formatResponseToStr();
+			return;
+		}
+		close(_pipeFd[1]); // Fermer le descripteur d'écriture après avoir tout envoyé
 
-        // Attendre la fin du processus enfant
-        int status;
-        waitpid(pid, &status, 0);
+		// Attendre la fin du processus enfant
+		int status;
+		waitpid(pid, &status, 0);
 
-        // Lire la réponse complète du processus CGI
-        char buffer[BUFFER_SIZE];
-        ssize_t bytesRead;
-        while ((bytesRead = read(_pipeFdCgi[0], buffer, BUFFER_SIZE - 1)) > 0)
-        {
-            buffer[bytesRead] = '\0';
-            _cgiOutputResult += buffer;
-        }
-        if (bytesRead == -1 && errno != EAGAIN)
-        {
-            std::cerr << "Error: read() failed" << std::endl;
-            _response->buildErrorPage(500);
-            _response->setStatus(READY);
-            _response->formatResponseToStr();
-            return;
-        }
-        if (bytesRead == 0)
-        {
-            _cgiOutputReady = true;
-            close(_pipeFdCgi[0]);
-        }
+		// Lire la réponse complète du processus CGI
+		char buffer[BUFFER_SIZE];
+		ssize_t bytesRead;
+		while ((bytesRead = read(_pipeFdCgi[0], buffer, BUFFER_SIZE - 1)) > 0)
+		{
+			buffer[bytesRead] = '\0';
+			_cgiOutputResult += buffer;
+		}
+		if (bytesRead == -1 && errno != EAGAIN)
+		{
+			std::cerr << "Error: read() failed" << std::endl;
+			_response->buildErrorPage(500);
+			_response->setStatus(READY);
+			_response->formatResponseToStr();
+			return;
+		}
+		if (bytesRead == 0)
+		{
+			_cgiOutputReady = true;
+			close(_pipeFdCgi[0]);
+		}
 
-        if (_cgiOutputReady)
-        {
-            _response->_headers["Content-Type"] = extractContentTypeCgiOutput();
-            _response->_body = getCgiOutputResult();
-            _response->_headers["Content-Length"] = std::to_string(_response->_body.size());
-            _response->_HTTPcode = 200;
-            _response->_statusMessage = "OK";
-            _response->_status = READY;
-        }
-    }
+		if (_cgiOutputReady)
+		{
+			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
+			_response->_body = getCgiOutputResult();
+			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
+			_response->_HTTPcode = 200;
+			_response->_statusMessage = "OK";
+			_response->_status = READY;
+		}
+	}
 }
 
 std::string	CgiHandler::extractContentTypeCgiOutput()

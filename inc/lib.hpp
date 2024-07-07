@@ -36,4 +36,4 @@
 #define ISFILE 1
 #define ISDIR 2
 #define FAVICON "icon.ico"
-#define TIME_TIMEOUT 10
+#define TIMEOUT_DELAY 3

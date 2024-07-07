@@ -2,7 +2,7 @@
 
 Route::~Route()
 {
-	if (_cgi != nullptr)
+	if (_cgi != NULL)
 		delete _cgi;
 }
 

@@ -156,7 +156,6 @@ void	Webserver::runServer()
 		int nbEvents = kevent(_kqueue, NULL, 0, &events[0], MAX_EVENTS, NULL);
 		if (nbEvents == -1 && g_signal)
 			throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
-		checkRequestTimeouts();
 		// On parcourt les evenements
 		for (int i = 0; i < nbEvents; i++)
 		{
@@ -219,6 +218,7 @@ bool	Webserver::receiveRequest(int clientFD)
 		if (!clientSocket)
 		{
 			std::cerr << "Client socket not found for FD: " << clientFD << std::endl;
+			close(clientFD);
 			return false;
 		}
 
@@ -432,24 +432,4 @@ void	Webserver::sendContinueResponse(int clientFD)
 {
 	const char *continueMessage = "HTTP/1.1 100 Continue\r\n\r\n";
 	send(clientFD, continueMessage, strlen(continueMessage), 0);
-}
-
-void Webserver::checkRequestTimeouts()
-{
-    const int	TIMEOUT = TIME_TIMEOUT;
-    std::time_t	currentTime = std::time(NULL);
-
-    for (std::map<int, Request*>::iterator it = _requests.begin(); it != _requests.end();)
-    {
-        Request* request = it->second;
-		if (!request)
-			return ;
-        if (currentTime - request->getTimestamp() > TIMEOUT)
-        {
-            std::cerr << "Request timeout for client FD: " << it->first << std::endl;
-            closeClient(it->first);
-        }
-        else
-            ++it;
-    }
 }
