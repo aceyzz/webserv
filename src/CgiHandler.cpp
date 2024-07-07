@@ -170,6 +170,11 @@ void	CgiHandler::printCgiHandler()
 
 void CgiHandler::handleCgi()
 {
+	std::string body = _request->getBody();
+	std::ofstream logFile("log/request_to_cgi.log", std::ios_base::app);
+	logFile << body << std::endl;
+	logFile.close();
+
 	if (DEBUG)
 	{
 		printCgiHandler();
