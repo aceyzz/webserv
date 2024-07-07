@@ -210,7 +210,6 @@ void	Response::interpretRequest()
 		if (!_cgiHandler)
 			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
 		_cgiHandler->handleCgi();
-		std::cout << "Status reponse after handleCgi: " << (_status == 69 ? "WRITING" : "NOT WRITING") << std::endl;
 		if (_cgiHandler->getCgiOutputReady())
 			_status = READY;
 	}
