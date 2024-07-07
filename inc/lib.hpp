@@ -18,6 +18,9 @@
 #include <fcntl.h>
 #include <dirent.h>
 
+#include <cerrno>
+#include <cstring>
+
 #include <string>
 #include <map>
 #include <unordered_map>

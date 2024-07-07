@@ -50,6 +50,7 @@ class	Response
 		std::string							getBody() const { return (_body); };
 		std::string							getStatusMessage() const { return (_statusMessage); };
 		Socket*								getClientSocket() const { return (_clientSocket); };
+		CgiHandler*							getCgiHandler() const { return (_cgiHandler); };
 
 		void	setResultResponse(std::string resultResponse) { _resultResponse = resultResponse; };
 
