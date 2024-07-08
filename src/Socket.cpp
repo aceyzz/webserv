@@ -25,6 +25,10 @@ Socket::Socket(eSocketType socktype, int domain, int type, int protocol, int por
 	_port = port;
 	_ip = ip;
 
+	int opt = 1;
+	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
+
 	// Creation de l'adresse
 	_addr.sin_family = domain;
 	_addr.sin_port = htons(port);

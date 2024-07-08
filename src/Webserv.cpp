@@ -24,6 +24,13 @@ Webserver::~Webserver()
 		if (it->second != NULL)
 			delete it->second;
 	_responses.clear();
+
+	// Remove all file descriptors from the kqueue
+	struct kevent event;
+	EV_SET(&event, 0, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	kevent(_kqueue, &event, 1, NULL, 0, NULL);
+	EV_SET(&event, 0, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+	kevent(_kqueue, &event, 1, NULL, 0, NULL);
 	if (_kqueue != -1)
 		close(_kqueue);
 }
