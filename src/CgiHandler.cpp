@@ -21,6 +21,9 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	initArgs();
 	initEnvp();
 	initPipe();
+
+	if (isMultipart())
+		extractMultipartData();
 }
 
 void	CgiHandler::initEnvp()
@@ -263,4 +266,89 @@ std::string	CgiHandler::extractContentTypeCgiOutput()
 	std::string contentType = _cgiOutputResult.substr(0, _cgiOutputResult.find("\n"));
 	_cgiOutputResult = _cgiOutputResult.substr(_cgiOutputResult.find("\n") + 1);
 	return (contentType);
+}
+
+bool	CgiHandler::isMultipart()
+{
+	std::string contentType = _request->getHeaders()["Content-Type"];
+	if (contentType.find("multipart/form-data") != std::string::npos)
+		return (true);
+	return (false);
+}
+
+void CgiHandler::extractMultipartData()
+{
+	std::string contentType = _request->getHeaders()["Content-Type"];
+	size_t boundaryPos = contentType.find("boundary=");
+	if (boundaryPos == std::string::npos)
+	{
+		std::cerr << "Boundary non trouvé dans Content-Type." << std::endl;
+		return;
+	}
+
+	std::string boundary = "--" + contentType.substr(boundaryPos + 9);
+	std::string body = _request->getBody();
+
+	// Recherche du premier occurrence du boundary
+	size_t partStart = body.find(boundary);
+	if (partStart == std::string::npos)
+	{
+		std::cerr << "Boundary initial non trouvé dans le corps." << std::endl;
+		return;
+	}
+	partStart += boundary.length(); // Juste après le boundary
+
+	// Gestion des fins de ligne juste après le boundary
+	while (body.substr(partStart, 1) == "\n" || body.substr(partStart, 1) == "\r")
+		partStart += 1;
+
+	// Recherche de la fin des en-têtes
+	size_t headersEnd = body.find("\r\n\r\n", partStart);
+	if (headersEnd == std::string::npos)
+	{
+		headersEnd = body.find("\n\n", partStart);
+		if (headersEnd == std::string::npos)
+		{
+			std::cerr << "Fin des en-têtes non trouvée." << std::endl;
+			return;
+		}
+		else
+			headersEnd += 2; // Sauter '\n\n'
+	}
+	else
+		headersEnd += 4; // Sauter '\r\n\r\n'
+
+	size_t fileStart = headersEnd;
+	size_t fileEnd = body.find(boundary, fileStart) - 1; // Trouver le prochain boundary et s'arrêter juste avant
+	if (body[fileEnd - 1] == '\r')
+		fileEnd -= 1; // Si CRLF, reculer un caractère de plus
+
+	std::string fileContent = body.substr(fileStart, fileEnd - fileStart);
+
+	// Extraction du nom du fichier
+	std::string headers = body.substr(partStart, headersEnd - partStart);
+	size_t filenamePos = headers.find("filename=\"");
+	std::string filename = "unknown";
+	if (filenamePos != std::string::npos)
+	{
+		size_t filenameStart = filenamePos + 10;
+		size_t filenameEnd = headers.find("\"", filenameStart);
+		if (filenameEnd != std::string::npos)
+			filename = headers.substr(filenameStart, filenameEnd - filenameStart);
+	}
+
+	_request->setBody(fileContent);  // Réassignation du corps de la requête avec le contenu binaire
+
+	// Ajout du filename dans les variables d'environnement
+	std::vector<std::string> newEnvs;
+	for (size_t i = 0; _envp[i]; i++)
+		newEnvs.push_back(_envp[i]);
+	newEnvs.push_back("FILENAME=" + filename);
+	for (size_t i = 0; _envp[i]; i++)
+		free(_envp[i]);
+	delete[] _envp;
+	_envp = new char*[newEnvs.size() + 1];
+	for (size_t i = 0; i < newEnvs.size(); i++)
+		_envp[i] = strdup(newEnvs[i].c_str());
+	_envp[newEnvs.size()] = NULL;
 }

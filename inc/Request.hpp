@@ -31,11 +31,11 @@ class	Request
 		~Request() { _headers.clear(); };
 
 		// Partie 1 : Parsing Orchestral
-		void	parseRequest(std::string rawRequest);
+		void	parseRequest(const std::vector<char>& rawRequestData);
 		// Partie 2 : Parsing de la ligne de requête
 		void	parseRequestLine(const std::string& line);
 		// Partie 3 : Parsing des en-têtes et du corps
-		void	parseHeadersAndBody(const std::vector<std::string>& lines);
+		void	parseHeadersAndBody(const std::vector<std::string>& lines, const std::vector<char>& rawRequestData);
 
 		// Getters
 		int									getFD() const { return (_fd); };
@@ -54,6 +54,7 @@ class	Request
 		// Setters
 		void	setStatus(RequestStatus status) { _status = status; };
 		void	setUri(std::string uri) { _uri = uri; };
+		void	setBody(std::string body) { _body = body; };
 		void	setRawRequest(std::string rawRequest) { _rawRequest = rawRequest; };
 
 		// Utils

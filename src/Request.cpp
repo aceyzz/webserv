@@ -19,32 +19,38 @@ void	Request::printRequest()
 	std::cout << CYAN "- Body size: " RST << _bodySize << std::endl;
 }
 
-void	Request::parseRequest(std::string rawRequest)
+void Request::parseRequest(const std::vector<char>& rawRequestData)
 {
-	_rawRequest = rawRequest;
-
-	std::istringstream stream(rawRequest);
-	std::string line;
-	std::vector<std::string> lines;
-
-	while (std::getline(stream, line))
+    try
 	{
-		// Enlever les retours de chariot potentiels
-		if (!line.empty() && line.back() == '\r')
-			line.pop_back();
-		lines.push_back(line);
+		// Convertir en string pour parser les lignes d'en-tête
+		std::string rawData(rawRequestData.begin(), rawRequestData.end());
+		std::istringstream stream(rawData);
+		std::string line;
+		std::vector<std::string> lines;
+
+		while (std::getline(stream, line, '\n'))
+		{
+			if (!line.empty() && line.back() == '\r')
+				line.pop_back();
+			lines.push_back(line);
+		}
+
+		if (!lines.empty())
+		{
+			parseRequestLine(lines[0]);  // Parser la ligne de requête
+			parseHeadersAndBody(lines, rawRequestData);  // Parser les en-têtes et le corps
+		}
 	}
-
-	if (!lines.empty())
+	catch (const std::exception& e)
 	{
-		parseRequestLine(lines[0]); // parser la ligne de requête
-		parseHeadersAndBody(lines); // parser les en-têtes et le corps
+		std::cerr << "Exception caught: " << e.what() << std::endl;
 	}
 }
 
 void	Request::parseRequestLine(const std::string& line)
 {
-	std::istringstream lineStream(line);
+	std::istringstream	lineStream(line);
 	lineStream >> _method >> _uri >> _versionHTTP;
 
 	// MAJ du statut
@@ -59,44 +65,52 @@ void	Request::parseRequestLine(const std::string& line)
 	parseParamsUri();
 }
 
-void	Request::parseHeadersAndBody(const std::vector<std::string>& lines)
+void Request::parseHeadersAndBody(const std::vector<std::string>& lines, const std::vector<char>& rawRequestData)
 {
-	size_t i = 1; // Ligne suivante après la ligne de requête
+    size_t lineIndex = 1;
+    size_t byteOffset = lines[0].length() + 1;  // +1 pour le caractère de nouvelle ligne
 
-	// Parser les en-têtes
-	for (; i < lines.size(); ++i)
-	{
-		const std::string& line = lines[i];
+    // Calculer la taille totale des en-têtes pour trouver le début du corps
+    for (; lineIndex < lines.size(); ++lineIndex)
+    {
+        const std::string& line = lines[lineIndex];
+        byteOffset += line.length() + 1;  // +1 pour le caractère de nouvelle ligne
 
-		if (line.empty())
-		{
-			++i;
-			break;
-		}
+        if (line.empty()) // Ligne vide trouvée, fin des en-têtes
+        {
+            byteOffset++;  // Passer le caractère de nouvelle ligne supplémentaire après les en-têtes
+            break;  // Sortir de la boucle car les en-têtes sont terminés
+        }
 
-		size_t delimiter = line.find(": ");
-		if (delimiter != std::string::npos)
-		{
-			std::string key = line.substr(0, delimiter);
-			std::string value = line.substr(delimiter + 2);
-			_headers[key] = value;
-		}
-	}
+        size_t delimiter = line.find(": ");
+        if (delimiter != std::string::npos)
+        {
+            std::string key = line.substr(0, delimiter);
+            std::string value = line.substr(delimiter + 2);
+            _headers[key] = value;
+        }
+    }
 
-	// Parser le corps
-	std::ostringstream bodyStream;
-	for (; i < lines.size(); ++i)
-	{
-		bodyStream << lines[i];
-		if (i != lines.size() - 1)
-			bodyStream << "\n";
-	}
-	_body = bodyStream.str();
-	_bodySize = _body.size();
+    // Ajustement pour passer la ligne vide qui sépare les en-têtes du corps
+    if (lineIndex < lines.size() && lines[lineIndex].empty())
+    {
+        byteOffset++;  // Passer la ligne vide (sur les systèmes où la fin des en-têtes est marquée par "\n\n")
+    }
 
-	// MAJ du statut
-	_status = COMPLETE;
+    // S'assurer que le corps est traité correctement en commençant à partir du byteOffset correct
+    if (byteOffset < rawRequestData.size())
+    {
+        _body.assign(rawRequestData.begin() + byteOffset, rawRequestData.end());
+        _bodySize = _body.size();
+    }
+    else
+    {
+        _body.clear();
+        _bodySize = 0;
+    }
+    _status = COMPLETE;
 }
+
 
 bool	Request::expectsContinue()
 {

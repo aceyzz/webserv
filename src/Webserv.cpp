@@ -326,7 +326,10 @@ void	Webserver::parseAndHandleRequest(int fd)
 	}
 
 	// Parser la requete et init des valeurs de la classe Request
-	request->parseRequest(request->getRawRequest());
+	// Creer un vecteur de char a partir de la string RawRequest
+	std::string			rawRequest = request->getRawRequest();
+	std::vector<char>	rawRequestData(rawRequest.begin(), rawRequest.end());
+	request->parseRequest(rawRequestData);
 
 	if (DEBUG)
 		request->printRequest();

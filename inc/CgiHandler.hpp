@@ -55,4 +55,7 @@ class	CgiHandler
 
 		// Utils
 		std::string	extractContentTypeCgiOutput();
+
+		bool	isMultipart();
+		void	extractMultipartData();
 };
