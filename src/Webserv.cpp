@@ -264,7 +264,7 @@ bool	Webserver::receiveRequest(int clientFD)
 		std::cout << "Received " << nbBytes << " bytes from client: " << request->getClientIp() << " (FD: " << clientFD << ")" << std::endl;
 
 	// Check if the entire body is received
-	if (contentLength >= 0 && rawRequest.size() >= posHeadersEnd + 4 + contentLength)
+	if ((contentLength >= 0 && rawRequest.size() >= contentLength) && (nbBytes < BUFFER_SIZE - 1))
 	{
 		request->setRawRequest(rawRequest); // Set the complete raw request
 		request->setStatus(COMPLETE);

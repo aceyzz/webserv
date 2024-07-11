@@ -203,8 +203,19 @@ void	Response::interpretRequest()
 
 	std::string fullPath = _config->getRoot() + uri;
 
+	// Check si l'uri existe (bypass certains edge case de POST)
+	if (isFileOrDir(fullPath) == -1)
+	{
+		buildErrorPage(404);
+		_status = READY;
+		formatResponseToStr();
+		if (_headers["Content-Type"] == "text/html")
+			_resultResponse = addFaviconToResponse(_resultResponse);
+		return ;
+	}
+
 	// METHODES gérées: GET, POST et DELETE
-	if (method == "POST" && isAllowedMethod(method, route))
+	if (method == "POST" && isAllowedMethod(method, route) && !isCgiRequest(uri, route->getCgiExtension()))
 	{
 		// Changer l'URI pour le mettre sur upload_file.py pour le POST, sans se preocupper de Cgi actif ou non
 		uri = "/cgi-bin/upload_file.py";

@@ -85,5 +85,4 @@ if filename:
     else:
         print(create_html_response("Failed to save uploaded file.", False))
 else:
-    log_message("Filename not provided.")
     print(create_html_response("Filename not provided.", False))
