@@ -204,6 +204,12 @@ void	Response::interpretRequest()
 	std::string fullPath = _config->getRoot() + uri;
 
 	// METHODES gérées: GET, POST et DELETE
+	if (method == "POST" && isAllowedMethod(method, route))
+	{
+		// Changer l'URI pour le mettre sur upload_file.py pour le POST, sans se preocupper de Cgi actif ou non
+		uri = "/cgi-bin/upload_file.py";
+		_request->setUri(uri);
+	}
 	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
 	{
 		// Test de CGI pour debug
