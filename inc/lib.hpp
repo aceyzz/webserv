@@ -39,4 +39,6 @@
 #define ISFILE 1
 #define ISDIR 2
 #define FAVICON "icon.ico"
+#define LOGENABLED 0
+#define DEFAULT_LOG "log/access.log"
 #define TIMEOUT_DELAY 3

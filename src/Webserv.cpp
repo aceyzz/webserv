@@ -4,6 +4,8 @@ Webserver::Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config
 {
 	for (size_t i = 0; i < _configs.size(); i++)
 		_configsByPort[_configs[i]->getPort()] = _configs[i];
+
+	_logger = new Logger();
 }
 
 Webserver::~Webserver()
@@ -33,6 +35,9 @@ Webserver::~Webserver()
 	kevent(_kqueue, &event, 1, NULL, 0, NULL);
 	if (_kqueue != -1)
 		close(_kqueue);
+	
+	if (_logger)
+		delete _logger;
 }
 
 void	Webserver::printConfigs()
@@ -264,7 +269,7 @@ bool	Webserver::receiveRequest(int clientFD)
 		std::cout << "Received " << nbBytes << " bytes from client: " << request->getClientIp() << " (FD: " << clientFD << ")" << std::endl;
 
 	// Check if the entire body is received
-	if (contentLength >= 0 && rawRequest.size() >= posHeadersEnd + 4 + contentLength)
+	if ((contentLength >= 0 && rawRequest.size() >= contentLength) && (nbBytes < BUFFER_SIZE - 1))
 	{
 		request->setRawRequest(rawRequest); // Set the complete raw request
 		request->setStatus(COMPLETE);
@@ -311,6 +316,10 @@ void	Webserver::acceptNewClient(int serverFD)
 
 	if (DEBUG)
 		std::cout << "New client connected: " << socket->getIp() << ":" << socket->getServerPort()  << " with fd: " << socket->getFD() << std::endl;
+	
+	// Logger
+	if (LOGENABLED)
+		_logger->log(buildLogMessage(clientFD, CONNECTION));
 }
 
 void	Webserver::parseAndHandleRequest(int fd)
@@ -351,6 +360,10 @@ void	Webserver::parseAndHandleRequest(int fd)
 		_requests.erase(fd);
 		return ;
 	}
+
+	// Logger
+	if (LOGENABLED)
+		_logger->log(buildLogMessage(fd, REQUEST));
 }
 
 bool	Webserver::responseManager(int clientFD)
@@ -397,6 +410,10 @@ bool	Webserver::responseManager(int clientFD)
 
 void	Webserver::closeClient(int fd)
 {
+	// Logger
+	if (LOGENABLED)
+		_logger->log(buildLogMessage(fd, RESPONSE));
+
 	if (fd != -1)
 		close(fd);
 
@@ -442,4 +459,30 @@ void	Webserver::sendContinueResponse(int clientFD)
 {
 	const char *continueMessage = "HTTP/1.1 100 Continue\r\n\r\n";
 	send(clientFD, continueMessage, strlen(continueMessage), 0);
+}
+
+std::string	Webserver::buildLogMessage(int fd, LogType type)
+{
+	std::string	message;
+
+	switch (type)
+	{
+		case CONNECTION:
+			message = "Connection:\t" + _clientSockets[fd]->getIp() + ":" + std::to_string(_clientSockets[fd]->getPort());
+			break;
+		case REQUEST:
+			message = "Request:\t\t" + _clientSockets[fd]->getIp() + ":" + std::to_string(_clientSockets[fd]->getPort()) + " ";
+			message += _requests[fd]->getMethod() + " " + _requests[fd]->getUri() + " " + _requests[fd]->getVersionHTTP();
+			message += " " + std::to_string(_requests[fd]->getBodySize()) + " bytes";
+			break;
+		case RESPONSE:
+			message = "Response:\t" + _clientSockets[fd]->getIp() + ":" + std::to_string(_clientSockets[fd]->getPort()) + " ";
+			message += std::to_string(_responses[fd]->getHTTPcode()) + " " + _responses[fd]->getStatusMessage();
+			message += (_responses[fd]->getHeaders()["Content-Length"] != "") ? " " + _responses[fd]->getHeaders()["Content-Length"] + " bytes" : "";
+			break;
+		default:
+			message = "Unknown log type";
+			break;
+	}
+	return (message);
 }

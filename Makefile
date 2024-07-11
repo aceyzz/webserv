@@ -6,7 +6,7 @@
 #    By: cedmulle <42-xvi@protonmail.com>           +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/02 10:29:14 by cedmulle          #+#    #+#              #
-#    Updated: 2024/07/09 12:36:32 by cedmulle         ###   ########.fr        #
+#    Updated: 2024/07/11 11:41:15 by cedmulle         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -81,3 +81,7 @@ kill:
 	echo "$(GRN)Processes terminated.$(RST)"
 
 restart: stop_webserver kill all
+
+cleanlog:
+	@rm -rf log/*.log
+	@echo "$(RED)Removed $(YEL)logs$(RST)"

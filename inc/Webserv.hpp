@@ -12,6 +12,7 @@ class	Socket;
 class	Request;
 class	Response;
 class	CgiHandler;
+class	Logger;
 
 #include "ParseConfig.hpp"
 #include "Config.hpp"
@@ -21,6 +22,14 @@ class	CgiHandler;
 #include "Request.hpp"
 #include "Response.hpp"
 #include "CgiHandler.hpp"
+#include "Logger.hpp"
+
+enum	LogType
+{
+	CONNECTION,
+	REQUEST,
+	RESPONSE
+};
 
 class	Webserver
 {
@@ -32,6 +41,7 @@ class	Webserver
 		std::map<int, Request*>		_requests;
 		std::map<int, Response*>	_responses;
 		std::map<int, Config*>		_configsByPort;
+		Logger*						_logger;
 
 	public:
 		// Constructors & destructors
@@ -44,6 +54,7 @@ class	Webserver
 		std::map<int, Socket*>	getClientSockets() { return (_clientSockets); };
 		std::map<int, Request*>	getRequests() { return (_requests); };
 		Request					*getRequest(int fd) { return (_requests[fd]); };
+		Logger*					getLogger() { return (_logger); };
 
 		// Setters
 		void	setServerSockets(std::map<int, Socket*> sockets) { _serverSockets = sockets; };
@@ -78,4 +89,7 @@ class	Webserver
 		void	printConfigs();
 		void	printSockets();
 		void	printConfigByPort();
+
+		// Logger
+		std::string	buildLogMessage(int fd, LogType type);
 };
