@@ -171,13 +171,8 @@ void	CgiHandler::printCgiHandler()
 	std::cout << std::endl;
 }
 
-void CgiHandler::handleCgi()
+void	CgiHandler::handleCgi()
 {
-	std::string body = _request->getBody();
-	std::ofstream logFile("log/request_to_cgi.log", std::ios_base::app);
-	logFile << body << std::endl;
-	logFile.close();
-
 	if (DEBUG)
 	{
 		printCgiHandler();
@@ -276,7 +271,7 @@ bool	CgiHandler::isMultipart()
 	return (false);
 }
 
-void CgiHandler::extractMultipartData()
+void	CgiHandler::extractMultipartData()
 {
 	std::string contentType = _request->getHeaders()["Content-Type"];
 	size_t boundaryPos = contentType.find("boundary=");
