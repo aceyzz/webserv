@@ -204,6 +204,15 @@ void	Response::interpretRequest()
 
 	std::string fullPath = _config->getRoot() + uri;
 
+	// Check de version HTTP
+	if (_request->getVersionHTTP() != HTTP_VERSION)
+	{
+		buildErrorPage(505);
+		formatResponseToStr();
+		_status = READY;
+		return;
+	}
+
 	// Check si l'uri existe (bypass certains edge case de POST)
 	if (isFileOrDir(fullPath) == -1)
 	{

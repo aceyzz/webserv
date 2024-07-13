@@ -144,6 +144,7 @@ void	ParseConfig::parseServerConfig(Config* config, std::string remainingConfig)
 	config->addErrorPage(501, "errors/501.html");
 	config->addErrorPage(502, "errors/502.html");
 	config->addErrorPage(503, "errors/503.html");
+	config->addErrorPage(505, "errors/505.html");
 }
 
 void	ParseConfig::parseLocationBlocks(Config* config, std::vector<std::string> locationBlocks)
