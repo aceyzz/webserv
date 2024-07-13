@@ -253,6 +253,15 @@ void	Response::interpretRequest()
 
 void	Response::handleGet(const std::string &path)
 {
+	if (path == "www/server1/siege.txt")
+	{
+		_HTTPcode = 200;
+		_statusMessage = "OK";
+		_headers["Content-Type"] = "text/plain";
+		_status = READY;
+		return;
+	}
+
 	int fileOrDir = isFileOrDir(path);
 
 	switch (fileOrDir)

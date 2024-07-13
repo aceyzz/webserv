@@ -193,7 +193,7 @@ void	Webserver::runServer()
 						parseAndHandleRequest(events[i].ident);
 				}
 				// Sinon c'est en ecriture
-				else if (events[i].filter == EVFILT_WRITE)
+				if (events[i].filter == EVFILT_WRITE)
 				{
 					if (responseManager(events[i].ident))
 						if (_responses[events[i].ident]->getStatus() == SENT)
@@ -217,7 +217,7 @@ bool	Webserver::receiveRequest(int clientFD)
 		_requests.erase(clientFD);
 		_clientSockets.erase(clientFD);
 		requestBuffers.erase(clientFD);
-		return false;
+		return (false);
 	}
 
 	buffer[nbBytes] = '\0';
@@ -230,7 +230,7 @@ bool	Webserver::receiveRequest(int clientFD)
 		{
 			std::cerr << "Client socket not found for FD: " << clientFD << std::endl;
 			close(clientFD);
-			return false;
+			return (false);
 		}
 
 		request = new Request(clientFD, clientSocket->getIp());
@@ -273,7 +273,18 @@ bool	Webserver::receiveRequest(int clientFD)
 		request->setRawRequest(rawRequest); // Set the complete raw request
 		request->setStatus(COMPLETE);
 		requestBuffers.erase(clientFD); // Clear the buffer for this client
-		return true;
+		return (true);
+	}
+
+	// Check si le Content-length est superieur au maximum Body size autorisé, sinon on reponds 413 et on fermes la connexion
+	size_t	bodySizeMax = getConfigForClient(clientFD)->getMaxBodySize();
+	if (bodySizeMax > 0 && contentLength > bodySizeMax)
+	{
+		Response* response = new Response(request, getConfigForClient(clientFD), _clientSockets[clientFD], _kqueue);
+		response->buildErrorPage(413);
+		response->sendResponse();
+		closeClient(clientFD);
+		return (false);
 	}
 
 	return (false);
@@ -349,15 +360,26 @@ void	Webserver::parseAndHandleRequest(int fd)
 		return;
 	}
 
-	// Mise a jour de l'evenement kqueue pour l'ecriture
-	struct kevent	event;
+	// Supprimer le descripteur de fichier des événements de lecture
+	struct kevent removeEvent;
+	EV_SET(&removeEvent, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	if (kevent(_kqueue, &removeEvent, 1, NULL, 0, NULL) == -1)
+	{
+		std::cerr << "kevent() failed to remove read event: " << strerror(errno) << std::endl;
+		close(fd);
+		_requests.erase(fd);
+		return;
+	}
+
+	// Ajouter le descripteur de fichier aux événements d'écriture
+	struct kevent event;
 	EV_SET(&event, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
 	{
-		std::cerr << "kevent() failed: " << strerror(errno) << std::endl;
+		std::cerr << "kevent() failed to add write event: " << strerror(errno) << std::endl;
 		close(fd);
 		_requests.erase(fd);
-		return ;
+		return;
 	}
 
 	// Logger
@@ -413,8 +435,10 @@ void	Webserver::closeClient(int fd)
 	if (LOGENABLED)
 		_logger->log(buildLogMessage(fd, RESPONSE));
 
-	if (fd != -1)
-		close(fd);
+	// Delete le FD de la liste d'evenements surveillés par le kqueue
+	struct kevent	event;
+	EV_SET(&event, fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+	kevent(_kqueue, &event, 1, NULL, 0, NULL);
 
 	if (_requests[fd])
 	{
@@ -431,6 +455,9 @@ void	Webserver::closeClient(int fd)
 		delete _clientSockets[fd];
 		_clientSockets.erase(fd);
 	}
+
+	if (fd != -1)
+		close(fd);
 
 	if (DEBUG)
 		std::cout << "Client closed: " << fd << std::endl;
