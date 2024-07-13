@@ -232,8 +232,8 @@ void	ParseConfig::checkServerConfig()
 			throw std::runtime_error("name not defined in server block " + config->getName());
 		if (config->getRoot().empty())
 			throw std::runtime_error("root not defined in server block " + config->getName());
-		if (config->getIndex().empty())
-			throw std::runtime_error("index not defined in server block " + config->getName());
+		// if (config->getIndex().empty())
+		// 	throw std::runtime_error("index not defined in server block " + config->getName());
 		if (config->getMaxBodySize() == -1)
 			throw std::runtime_error("max body size not defined in server block " + config->getName());
 		if (config->getErrorPages().empty())
@@ -251,8 +251,8 @@ void	ParseConfig::checkRouteConfig(Route *route)
 		throw std::runtime_error("uri not defined in location block " + route->getRoot());
 	if (route->getRoot().empty())
 		throw std::runtime_error("root not defined in location block " + route->getRoot());
-	if (route->getIndex().empty())
-		throw std::runtime_error("index not defined in location block " + route->getRoot());
+	// if (route->getIndex().empty())
+	// 	throw std::runtime_error("index not defined in location block " + route->getRoot());
 	if (route->getIsRedir() && route->getRedirPath().empty())
 		throw std::runtime_error("redir path not defined in location block " + route->getRoot());
 	if (route->getMethod().empty() && !route->getIsRedir())

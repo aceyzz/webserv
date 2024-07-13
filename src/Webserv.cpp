@@ -175,7 +175,6 @@ void	Webserver::runServer()
 			if (events[i].flags & EV_ERROR || events[i].flags & EV_EOF)
 			{
 				closeClient(events[i].ident);
-				std::cerr << "Error in kevent" << std::endl;
 				continue;
 			}
 			// Si c'est un socket serveur en comparant avec le FD de l'evenement

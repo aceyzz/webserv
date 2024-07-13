@@ -179,6 +179,24 @@ void	CgiHandler::handleCgi()
 		std::cout << CYAN "Body sent into the pipe: " RST << std::endl << _request->getBody() << std::endl;
 	}
 
+	// Check si le body est vide, construire la page 400 et set la response comme ready
+	if (_request->getBody().empty() && _request->getMethod() == "POST")
+	{
+		_response->buildErrorPage(400);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return;
+	}
+
+	// Si pas de content length, construire la page 411 et set la response comme ready
+	if (_request->getHeaders().find("Content-Length") == _request->getHeaders().end())
+	{
+		_response->buildErrorPage(411);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return;
+	}
+
 	pid_t pid = fork();
 	if (pid == -1)
 	{
@@ -249,8 +267,17 @@ void	CgiHandler::handleCgi()
 			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
 			_response->_body = getCgiOutputResult();
 			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
-			_response->_HTTPcode = 200;
-			_response->_statusMessage = "OK";
+			// Si upload de fichier, retourner 201, sinon 200
+			if (_request->getMethod() == "POST" && _request->getUri() == "/cgi-bin/upload_file.py")
+			{	
+				_response->_HTTPcode = 201;
+				_response->_statusMessage = "Created";
+			}
+			else
+			{		
+				_response->_HTTPcode = 200;
+				_response->_statusMessage = "OK";
+			}
 			_response->_status = READY;
 		}
 	}

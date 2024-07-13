@@ -196,7 +196,8 @@ void	Response::interpretRequest()
 	// Étendre l'URI avec l'index si nécessaire
 	if (uri == "/")
 	{
-		uri += _config->getIndex();
+		if (_config->getIndex() != "")
+			uri += _config->getIndex();
 		// MAJ du request avec la nouvelle uri
 		_request->setUri(uri);
 	}
