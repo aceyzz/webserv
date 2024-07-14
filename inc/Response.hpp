@@ -7,8 +7,7 @@ enum eResponseStatus
 	WRITING = 69,
 	BUILDING,
 	READY,
-	SENT,
-	CLOSED
+	SENT
 };
 
 class	Response
