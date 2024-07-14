@@ -213,10 +213,8 @@ bool	Webserver::receiveRequest(int clientFD)
 	if (nbBytes <= 0)
 	{
 		// Error handling or connection closed by client
-		close(clientFD);
-		_requests.erase(clientFD);
-		_clientSockets.erase(clientFD);
 		requestBuffers.erase(clientFD);
+		closeClient(clientFD);
 		return (false);
 	}
 
@@ -228,8 +226,9 @@ bool	Webserver::receiveRequest(int clientFD)
 		Socket* clientSocket = _clientSockets[clientFD];
 		if (!clientSocket)
 		{
-			std::cerr << "Client socket not found for FD: " << clientFD << std::endl;
-			close(clientFD);
+			std::cout << "Client socket not found for FD: " << clientFD << std::endl;
+			requestBuffers.erase(clientFD);
+			closeClient(clientFD);
 			return (false);
 		}
 
@@ -259,7 +258,7 @@ bool	Webserver::receiveRequest(int clientFD)
 				{
 					contentLength = std::stoul(contentLengthStr);
 				}
-				catch (const std::exception& e) { std::cerr << "Failed to parse Content-Length: " << e.what() << std::endl; }
+				catch (const std::exception& e) { std::cout << "Failed to parse Content-Length: " << e.what() << std::endl; }
 			}
 		}
 	}
@@ -281,8 +280,10 @@ bool	Webserver::receiveRequest(int clientFD)
 	if (bodySizeMax > 0 && contentLength > bodySizeMax)
 	{
 		Response* response = new Response(request, getConfigForClient(clientFD), _clientSockets[clientFD], _kqueue);
+		_responses[clientFD] = response;
 		response->buildErrorPage(413);
 		response->sendResponse();
+		requestBuffers.erase(clientFD);
 		closeClient(clientFD);
 		return (false);
 	}
@@ -299,13 +300,13 @@ void	Webserver::acceptNewClient(int serverFD)
 	int			clientFD = accept(serverFD, (struct sockaddr*)&clientAddr, &clientAddrLen);
 	if (clientFD == -1)
 	{
-		std::cerr << "accept() failed: " << strerror(errno) << std::endl;
+		std::cout << "accept() failed: " << strerror(errno) << std::endl;
 		return;
 	}
 	// On met le client en mode non-bloquant
 	if (fcntl(clientFD, F_SETFL, O_NONBLOCK) == -1)
 	{
-		std::cerr << "fcntl() failed: " << strerror(errno) << std::endl;
+		std::cout << "fcntl() failed: " << strerror(errno) << std::endl;
 		close(clientFD);
 		return;
 	}
@@ -314,7 +315,7 @@ void	Webserver::acceptNewClient(int serverFD)
 	EV_SET(&event, clientFD, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
 	{
-		std::cerr << "kevent() failed: " << strerror(errno) << std::endl;
+		std::cout << "kevent() failed: " << strerror(errno) << std::endl;
 		close(clientFD);
 		return;
 	}
@@ -338,7 +339,7 @@ void	Webserver::parseAndHandleRequest(int fd)
 
 	if (!request)
 	{
-		std::cerr << "Request not found" << std::endl;
+		std::cout << "Request not found" << std::endl;
 		close(fd);
 		_requests.erase(fd);
 		return ;
@@ -353,7 +354,7 @@ void	Webserver::parseAndHandleRequest(int fd)
 	if (DEBUG)
 		request->printRequest();
 
-	if (request->expectsContinue())
+	if (request->expectsContinue() && request->getStatus() != CONTINUE)
 	{
 		sendContinueResponse(fd);
 		request->setStatus(CONTINUE);
@@ -365,7 +366,7 @@ void	Webserver::parseAndHandleRequest(int fd)
 	EV_SET(&removeEvent, fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
 	if (kevent(_kqueue, &removeEvent, 1, NULL, 0, NULL) == -1)
 	{
-		std::cerr << "kevent() failed to remove read event: " << strerror(errno) << std::endl;
+		std::cout << "kevent() failed to remove read event: " << strerror(errno) << std::endl;
 		close(fd);
 		_requests.erase(fd);
 		return;
@@ -376,7 +377,7 @@ void	Webserver::parseAndHandleRequest(int fd)
 	EV_SET(&event, fd, EVFILT_WRITE, EV_ADD | EV_ENABLE, 0, 0, NULL);
 	if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
 	{
-		std::cerr << "kevent() failed to add write event: " << strerror(errno) << std::endl;
+		std::cout << "kevent() failed to add write event: " << strerror(errno) << std::endl;
 		close(fd);
 		_requests.erase(fd);
 		return;
@@ -393,7 +394,7 @@ bool	Webserver::responseManager(int clientFD)
 	Request* request = _requests[clientFD];
 	if (!request)
 	{
-		std::cerr << "Request of client not found" << std::endl;
+		std::cout << "Request of client not found" << std::endl;
 		return false;
 	}
 
@@ -401,7 +402,7 @@ bool	Webserver::responseManager(int clientFD)
 	Config* config = getConfigForClient(clientFD);
 	if (!config)
 	{
-		std::cerr << "Config for client not found" << std::endl;
+		std::cout << "Config for client not found" << std::endl;
 		return false;
 	}
 
@@ -468,7 +469,7 @@ Config*	Webserver::getConfigForClient(int clientFD)
 	Socket* clientSocket = _clientSockets[clientFD];
 	if (!clientSocket)
 	{
-		std::cerr << "Client socket not found for FD: " << clientFD << std::endl;
+		std::cout << "Client socket not found for FD: " << clientFD << std::endl;
 		return (NULL);
 	}
 

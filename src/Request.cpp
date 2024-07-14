@@ -25,32 +25,52 @@ void	Request::parseRequest(const std::vector<char>& rawRequestData)
 	{
 		// Convertir en string pour parser les lignes d'en-tête
 		std::string rawData(rawRequestData.begin(), rawRequestData.end());
-		std::istringstream stream(rawData);
-		std::string line;
-		std::vector<std::string> lines;
+		const char* rawPtr = rawData.c_str();
 
-		while (std::getline(stream, line, '\n'))
+		// Trouver la fin de la première ligne (ligne de requête)
+		const char* lineEnd = strstr(rawPtr, "\r\n");
+		if (lineEnd == nullptr)
 		{
-			if (!line.empty() && line.back() == '\r')
-				line.pop_back();
-			lines.push_back(line);
+			_status = ERROR;
+			return;
 		}
 
-		if (!lines.empty())
+		// Parser la ligne de requête
+		std::string requestLine(rawPtr, lineEnd - rawPtr);
+		parseRequestLine(requestLine);
+
+		// Avancer le pointeur après la ligne de requête
+		rawPtr = lineEnd + 2;
+
+		// Trouver la fin des en-têtes
+		const char* headerEnd = strstr(rawPtr, "\r\n\r\n");
+		if (headerEnd == nullptr)
 		{
-			parseRequestLine(lines[0]);  // Parser la ligne de requête
-			parseHeadersAndBody(rawRequestData);  // Parser les en-têtes et le corps
+			_status = ERROR;
+			return;
 		}
+
+		// Parser les en-têtes
+		std::string headers(rawPtr, headerEnd - rawPtr);
+		parseHeaders(headers);
+
+		// Récupérer le corps de la requête
+		rawPtr = headerEnd + 4;
+		_body.assign(rawPtr, rawData.c_str() + rawData.size() - rawPtr);
+		_bodySize = _body.size();
+
+		_status = COMPLETE;
 	}
 	catch (const std::exception& e)
 	{
 		std::cerr << "Exception caught: " << e.what() << std::endl;
+		_status = ERROR;
 	}
 }
 
 void	Request::parseRequestLine(const std::string& line)
 {
-	std::istringstream	lineStream(line);
+	std::istringstream lineStream(line);
 	lineStream >> _method >> _uri >> _versionHTTP;
 
 	// MAJ du statut
@@ -60,88 +80,28 @@ void	Request::parseRequestLine(const std::string& line)
 		_status = RECEIVING;
 
 	// Mettre à jour le timestamp au moment de la réception de la requête
-	_timestamp = std::time(nullptr);
+	_timestamp = std::time(NULL);
 
 	parseParamsUri();
 }
 
-void	Request::parseHeadersAndBody(const std::vector<char>& rawRequestData)
+void	Request::parseHeaders(const std::string& headers)
 {
-	size_t byteOffset = 0;
-	size_t rawSize = rawRequestData.size();
-
-	// Trouver la fin de la première ligne (ligne de requête)
-	size_t lineEnd = std::string::npos;
-	for (size_t i = 0; i < rawSize - 1; ++i)
+	std::istringstream headerStream(headers);
+	std::string line;
+	while (std::getline(headerStream, line))
 	{
-		if (rawRequestData[i] == '\r' && rawRequestData[i + 1] == '\n')
-		{
-			lineEnd = i;
-			break;
-		}
-	}
+		if (!line.empty() && line.back() == '\r')
+			line.pop_back();
 
-	if (lineEnd == std::string::npos)
-	{
-		_status = ERROR;
-		return;
-	}
-
-	// Parser la ligne de requête
-	std::string requestLine(rawRequestData.begin(), rawRequestData.begin() + lineEnd);
-	parseRequestLine(requestLine);
-	byteOffset = lineEnd + 2;  // Sauter "\r\n"
-
-	// Parser les en-têtes
-	while (byteOffset < rawSize)
-	{
-		lineEnd = std::string::npos;
-		for (size_t i = byteOffset; i < rawSize - 1; ++i)
-		{
-			if (rawRequestData[i] == '\r' && rawRequestData[i + 1] == '\n')
-			{
-				lineEnd = i;
-				break;
-			}
-		}
-
-		if (lineEnd == std::string::npos)
-		{
-			_status = ERROR;
-			return;
-		}
-
-		// Ligne vide trouvée, fin des en-têtes
-		if (lineEnd == byteOffset)
-		{
-			byteOffset += 2;  // Sauter "\r\n"
-			break;
-		}
-
-		std::string headerLine(rawRequestData.begin() + byteOffset, rawRequestData.begin() + lineEnd);
-		byteOffset = lineEnd + 2;  // Sauter "\r\n"
-
-		size_t delimiter = headerLine.find(": ");
+		size_t delimiter = line.find(": ");
 		if (delimiter != std::string::npos)
 		{
-			std::string key = headerLine.substr(0, delimiter);
-			std::string value = headerLine.substr(delimiter + 2);
+			std::string key = line.substr(0, delimiter);
+			std::string value = line.substr(delimiter + 2);
 			_headers[key] = value;
 		}
 	}
-
-	// S'assurer que le corps est traité correctement en commençant à partir du byteOffset correct
-	if (byteOffset < rawRequestData.size())
-	{
-		_body.assign(rawRequestData.begin() + byteOffset, rawRequestData.end());
-		_bodySize = _body.size();
-	}
-	else
-	{
-		_body.clear();
-		_bodySize = 0;
-	}
-	_status = COMPLETE;
 }
 
 bool	Request::expectsContinue()

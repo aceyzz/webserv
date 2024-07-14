@@ -179,108 +179,158 @@ void	CgiHandler::handleCgi()
 		std::cout << CYAN "Body sent into the pipe: " RST << std::endl << _request->getBody() << std::endl;
 	}
 
-	// Check si le body est vide, construire la page 400 et set la response comme ready
-	if (_request->getBody().empty() && _request->getMethod() == "POST")
+	_response->setStatus(BUILDING);
+
+	if (!_cgiLaunched)
 	{
-		_response->buildErrorPage(400);
-		_response->setStatus(READY);
-		_response->formatResponseToStr();
-		return;
+		// Check si le body est vide, construire la page 400 et set la response comme ready
+		if (_request->getBody().empty() && _request->getMethod() == "POST")
+		{
+			_response->buildErrorPage(400);
+			_response->setStatus(READY);
+			_response->formatResponseToStr();
+			return;
+		}
+
+		// Si pas de content length, construire la page 411 et set la response comme ready
+		if (_request->getHeaders().find("Content-Length") == _request->getHeaders().end())
+		{
+			_response->buildErrorPage(411);
+			_response->setStatus(READY);
+			_response->formatResponseToStr();
+			return;
+		}
+
+		if (pipe(_pipeFd) == -1 || pipe(_pipeFdCgi) == -1)
+		{
+			std::cerr << "Error: pipe() failed" << std::endl;
+			_response->buildErrorPage(500);
+			_response->setStatus(READY);
+			_response->formatResponseToStr();
+			return;
+		}
+
+		_cgiPid = fork();
+		if (_cgiPid == -1)
+		{
+			std::cerr << "Error: fork() failed" << std::endl;
+			_response->buildErrorPage(500);
+			_response->setStatus(READY);
+			_response->formatResponseToStr();
+			return;
+		}
+
+		if (_cgiPid == 0) // Enfant
+		{
+			close(_pipeFd[1]);
+			dup2(_pipeFd[0], STDIN_FILENO);
+			close(_pipeFd[0]);
+
+			close(_pipeFdCgi[0]);
+			dup2(_pipeFdCgi[1], STDOUT_FILENO);
+			close(_pipeFdCgi[1]);
+
+			execve(_args[0], _args, _envp);
+			exit(EXIT_FAILURE);
+		}
+		else // Parent
+		{
+			close(_pipeFd[0]);
+			close(_pipeFdCgi[1]);
+			_cgiLaunched = true;
+		}
 	}
 
-	// Si pas de content length, construire la page 411 et set la response comme ready
-	if (_request->getHeaders().find("Content-Length") == _request->getHeaders().end())
+	// Écriture par chunks de CHUNK_SIZE dans le pipe
+	if (_bytesWritten < _request->getBody().size())
 	{
-		_response->buildErrorPage(411);
-		_response->setStatus(READY);
-		_response->formatResponseToStr();
-		return;
+		size_t chunkSize = std::min(static_cast<size_t>(CHUNK_SIZE), _request->getBody().size() - _bytesWritten);
+		ssize_t written = write(_pipeFd[1], _request->getBody().c_str() + _bytesWritten, chunkSize);
+
+		double progress = static_cast<double>(_bytesWritten) / _request->getBody().size() * 100;
+
+		std::cout << CLRL "Total Mb uploaded: " GOLD << static_cast<double>(_bytesWritten / 1000) << RST << " - Progress: " CYAN << progress << "%" RST CURSOR << std::endl;
+
+		if (written >= 0)
+			_bytesWritten += written;
+		else if (written == -1)
+		{
+			std::cerr << "Error: write() failed" << std::endl;
+			_response->buildErrorPage(500);
+			_response->setStatus(READY);
+			close(_pipeFd[1]);
+			return;
+		}
+
+		// Si tout le body a été écrit, fermer le descripteur d'écriture (envoyer EOF au CGI)
+		if (_bytesWritten == _request->getBody().size())
+			close(_pipeFd[1]);
 	}
 
-	pid_t pid = fork();
-	if (pid == -1)
+	_response->setStatus(BUILDING);
+
+	// Attendre la fin du processus enfant avec l'option WNOHANG
+	int status;
+	pid_t result = waitpid(_cgiPid, &status, WNOHANG);
+	if (result == -1)
 	{
-		std::cerr << "Error: fork() failed" << std::endl;
+		std::cerr << "Error: waitpid() failed" << std::endl;
 		_response->buildErrorPage(500);
 		_response->setStatus(READY);
 		_response->formatResponseToStr();
 		return;
 	}
-	if (pid == 0) // Enfant
+	else if (result > 0 && WIFEXITED(status))
 	{
-		close(_pipeFd[1]);
-		dup2(_pipeFd[0], STDIN_FILENO);
-		close(_pipeFd[0]);
-
-		close(_pipeFdCgi[0]);
-		dup2(_pipeFdCgi[1], STDOUT_FILENO);
-		close(_pipeFdCgi[1]);
-
-		execve(_args[0], _args, _envp);
-		exit(EXIT_FAILURE);
-	}
-	else // Parent
-	{
-		close(_pipeFd[0]);
-		close(_pipeFdCgi[1]);
-
-		// Écriture complète du body de la requête dans le pipe
-		ssize_t written = write(_pipeFd[1], _request->getBody().c_str(), _request->getBody().size());
-		if (written == -1)
-		{
-			std::cerr << "Error: write() failed" << std::endl;
-			_response->buildErrorPage(500);
-			_response->setStatus(READY);
-			_response->formatResponseToStr();
-			return;
-		}
-		close(_pipeFd[1]); // Fermer le descripteur d'écriture après avoir tout envoyé
-
-		// Attendre la fin du processus enfant
-		int status;
-		waitpid(pid, &status, 0);
-
 		// Lire la réponse complète du processus CGI
-		char buffer[BUFFER_SIZE];
-		ssize_t bytesRead;
-		while ((bytesRead = read(_pipeFdCgi[0], buffer, BUFFER_SIZE - 1)) > 0)
+		while (true)
 		{
-			buffer[bytesRead] = '\0';
-			_cgiOutputResult += buffer;
-		}
-		if (bytesRead == -1 && errno != EAGAIN)
-		{
-			std::cerr << "Error: read() failed" << std::endl;
-			_response->buildErrorPage(500);
-			_response->setStatus(READY);
-			_response->formatResponseToStr();
-			return;
-		}
-		if (bytesRead == 0)
-		{
-			_cgiOutputReady = true;
-			close(_pipeFdCgi[0]);
+			char buffer[BUFFER_SIZE];
+			ssize_t bytesRead = read(_pipeFdCgi[0], buffer, BUFFER_SIZE - 1);
+			if (bytesRead > 0)
+			{
+				buffer[bytesRead] = '\0';
+				_cgiOutputResult += buffer;
+			}
+			else if (bytesRead == 0) // EOF
+			{
+				_cgiOutputReady = true;
+				close(_pipeFdCgi[0]);
+				break;
+			}
+			else
+			{
+				std::cerr << "Error: read() failed" << std::endl;
+				_response->buildErrorPage(500);
+				_response->setStatus(READY);
+				_response->formatResponseToStr();
+				return;
+			}
 		}
 
 		if (_cgiOutputReady)
 		{
+			std::cout << std::endl;
 			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
 			_response->_body = getCgiOutputResult();
 			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
 			// Si upload de fichier, retourner 201, sinon 200
 			if (_request->getMethod() == "POST" && _request->getUri() == "/cgi-bin/upload_file.py")
-			{	
+			{
 				_response->_HTTPcode = 201;
 				_response->_statusMessage = "Created";
 			}
 			else
-			{		
+			{
 				_response->_HTTPcode = 200;
 				_response->_statusMessage = "OK";
 			}
 			_response->_status = READY;
+			_response->formatResponseToStr();
 		}
 	}
+
+	_response->setStatus(BUILDING);
 }
 
 std::string	CgiHandler::extractContentTypeCgiOutput()

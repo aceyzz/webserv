@@ -35,7 +35,7 @@ class	Request
 		// Partie 2 : Parsing de la ligne de requête
 		void	parseRequestLine(const std::string& line);
 		// Partie 3 : Parsing des en-têtes et du corps
-		void	parseHeadersAndBody(const std::vector<char>& rawRequestData);
+		void	parseHeaders(const std::string& rawRequestData);
 
 		// Getters
 		int									getFD() const { return (_fd); };
