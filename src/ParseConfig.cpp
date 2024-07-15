@@ -140,10 +140,12 @@ void	ParseConfig::parseServerConfig(Config* config, std::string remainingConfig)
 	config->addErrorPage(414, "errors/414.html");
 	config->addErrorPage(415, "errors/415.html");
 	config->addErrorPage(429, "errors/429.html");
+	config->addErrorPage(499, "errors/499.html");
 	config->addErrorPage(500, "errors/500.html");
 	config->addErrorPage(501, "errors/501.html");
 	config->addErrorPage(502, "errors/502.html");
 	config->addErrorPage(503, "errors/503.html");
+	config->addErrorPage(504, "errors/504.html");
 	config->addErrorPage(505, "errors/505.html");
 }
 

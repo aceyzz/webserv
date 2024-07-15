@@ -257,7 +257,7 @@ void	CgiHandler::handleCgi()
 			progress = floor(progress * 100) / 100; // Limit to 2 decimal places
 			double bytesWrittenMb = static_cast<double>(_bytesWritten) / 1e+6; // Convert bytes to megabytes
 			bytesWrittenMb = floor(bytesWrittenMb * 100) / 100; // Limit to 2 decimal places
-			std::cout << CURSOR CLRL "(" REDD << _uploadFilename << RST ") Mb uploaded: " GOLD << bytesWrittenMb << RST << "\tProgress: " CYAN << progress << "%" RST CURSOREND << std::endl;
+			std::cout << CURSOR "(" REDD << _uploadFilename << RST ") Mb uploaded: " GOLD << bytesWrittenMb << RST << "\tProgress: " CYAN << progress << "%" RST CURSOREND << std::endl;
 		}
 
 		if (written >= 0)
@@ -289,7 +289,7 @@ void	CgiHandler::handleCgi()
 		_response->formatResponseToStr();
 		return;
 	}
-	else if (result > 0 && WIFEXITED(status))
+	else if (result > 0 && WIFEXITED(status) && WEXITSTATUS(status) == 0 && _bytesWritten == _request->getBody().size())
 	{
 		_lastActivity = std::time(NULL);
 		// Lire la réponse complète du processus CGI
@@ -321,6 +321,7 @@ void	CgiHandler::handleCgi()
 
 		if (_cgiOutputReady)
 		{
+			std::cout << CLRALL << std::endl;
 			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
 			_response->_body = getCgiOutputResult();
 			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
@@ -347,7 +348,7 @@ void	CgiHandler::handleCgi()
 		std::cerr << GOLD "[Warning]" RST << " CGI process exited abnormally" RST << std::endl;
 		close(_pipeFd[1]);
 		close(_pipeFdCgi[0]);
-		_response->buildErrorPage(500);
+		_response->buildErrorPage(502);
 		_response->setStatus(READY);
 		_response->formatResponseToStr();
 		return ;
@@ -359,7 +360,7 @@ void	CgiHandler::handleCgi()
 		kill(_cgiPid, SIGKILL);
 		close(_pipeFd[1]);
 		close(_pipeFdCgi[0]);
-		_response->buildErrorPage(500);
+		_response->buildErrorPage(504);
 		_response->setStatus(READY);
 		_response->formatResponseToStr();
 		return ;

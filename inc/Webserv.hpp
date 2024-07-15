@@ -92,4 +92,6 @@ class	Webserver
 
 		// Logger
 		std::string	buildLogMessage(int fd, LogType type);
+
+		bool	isClientConnected(int clientFd);
 };

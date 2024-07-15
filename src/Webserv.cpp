@@ -173,10 +173,7 @@ void	Webserver::runServer()
 		{
 			// Si EV_ERROR (erreur dans kevent) alors on continue
 			if (events[i].flags & EV_ERROR || events[i].flags & EV_EOF)
-			{
 				closeClient(events[i].ident);
-				continue;
-			}
 			// Si c'est un socket serveur en comparant avec le FD de l'evenement
 			if (isServerSocket(events[i].ident))
 			{
