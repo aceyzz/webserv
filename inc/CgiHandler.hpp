@@ -24,6 +24,10 @@ class	CgiHandler
 
 		pid_t		_cgiPid;
 
+		std::string	_uploadFilename;
+
+		time_t		_lastActivity;
+
 		// Gros fichiers a envoyer au STDIN du cgi:
 		// - le parent ecrit morceaux par morceaux dans le pipe du STDIN du cgi
 		// - le cgi lit morceaux par morceaux dans son STDIN

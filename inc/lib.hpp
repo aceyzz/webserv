@@ -42,4 +42,4 @@
 #define FAVICON "icon.ico"
 #define LOGENABLED 0
 #define DEFAULT_LOG "log/access.log"
-#define TIMEOUT_DELAY 3
+#define CGI_TIMEOUT 7

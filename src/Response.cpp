@@ -277,32 +277,32 @@ void	Response::handleGet(const std::string &path)
 	{
 		case (ISFILE):
 		{
-		if (!_streamer)
-		{
-			_fileStream = new std::ifstream(path);
-			_streamer = true;
+			if (!_streamer)
+			{
+				_fileStream = new std::ifstream(path);
+				_streamer = true;
 
-			std::string extension = getFileExtension(path);
-			_HTTPcode = 200;
-			_headers["Content-Type"] = getContentType(extension);
-			_statusMessage = "OK";
-		}
-		char buffer[CHUNK_SIZE];
-		_fileStream->read(buffer, CHUNK_SIZE);
-		std::streamsize bytesRead = _fileStream->gcount(); // Nombre de caractères réellement lus
-		_body.append(buffer, bytesRead); // Ajouter uniquement les caractères lus au body
+				std::string extension = getFileExtension(path);
+				_HTTPcode = 200;
+				_headers["Content-Type"] = getContentType(extension);
+				_statusMessage = "OK";
+			}
+			char buffer[CHUNK_SIZE];
+			_fileStream->read(buffer, CHUNK_SIZE);
+			std::streamsize bytesRead = _fileStream->gcount(); // Nombre de caractères réellement lus
+			_body.append(buffer, bytesRead); // Ajouter uniquement les caractères lus au body
 
-		if (_fileStream->eof())
-		{
-			_status = READY;
-			_streamer = false;
-			_fileStream->close();
-			delete _fileStream;
-		}
-		else
-			_status = BUILDING;
+			if (_fileStream->eof())
+			{
+				_status = READY;
+				_streamer = false;
+				_fileStream->close();
+				delete _fileStream;
+			}
+			else
+				_status = BUILDING;
 
-		return;
+			return;
 		}
 		case (ISDIR):
 		{

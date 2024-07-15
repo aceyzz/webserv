@@ -17,6 +17,7 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	_bytesWritten = 0;
 	_cgiLaunched = false;
 	_cgiPid = -1;
+	_uploadFilename = "";
 
 	initArgs();
 	initEnvp();
@@ -79,7 +80,7 @@ void	CgiHandler::initPipe()
 {
 	if (pipe(_pipeFd) == -1)
 	{
-		std::cerr << REDD "Error: pipe() failed" RST << std::endl;
+		std::cerr << REDD "[Warning] pipe() failed" RST << std::endl;
 		_response->buildErrorPage(500);
 		_response->setStatus(READY);
 		_response->formatResponseToStr();
@@ -93,7 +94,7 @@ void	CgiHandler::initPipe()
 			close(_pipeFd[1]);
 			_pipeFd[0] = -1;
 			_pipeFd[1] = -1;
-			std::cerr << REDD "Error: fcntl() failed" RST << std::endl;
+			std::cerr << REDD "[Warning] fcntl() failed" RST << std::endl;
 			_response->buildErrorPage(500);
 			_response->setStatus(READY);
 			_response->formatResponseToStr();
@@ -101,7 +102,7 @@ void	CgiHandler::initPipe()
 	}
 	if (pipe(_pipeFdCgi) == -1)
 	{
-		std::cerr << REDD "Error: pipe() failed" RST << std::endl;
+		std::cerr << REDD "[Warning] pipe() failed" RST << std::endl;
 		_response->buildErrorPage(500);
 		_response->setStatus(READY);
 		_response->formatResponseToStr();
@@ -115,7 +116,7 @@ void	CgiHandler::initPipe()
 			close(_pipeFdCgi[1]);
 			_pipeFdCgi[0] = -1;
 			_pipeFdCgi[1] = -1;
-			std::cerr << REDD "Error: fcntl() failed" RST << std::endl;
+			std::cerr << REDD "[Warning] fcntl() failed" RST << std::endl;
 			_response->buildErrorPage(500);
 			_response->setStatus(READY);
 			_response->formatResponseToStr();
@@ -203,7 +204,7 @@ void	CgiHandler::handleCgi()
 
 		if (pipe(_pipeFd) == -1 || pipe(_pipeFdCgi) == -1)
 		{
-			std::cerr << "Error: pipe() failed" << std::endl;
+			std::cerr << GOLD "[Warning]" RST << " pipe() failed" RST << std::endl;
 			_response->buildErrorPage(500);
 			_response->setStatus(READY);
 			_response->formatResponseToStr();
@@ -213,7 +214,7 @@ void	CgiHandler::handleCgi()
 		_cgiPid = fork();
 		if (_cgiPid == -1)
 		{
-			std::cerr << "Error: fork() failed" << std::endl;
+			std::cerr << GOLD "[Warning]" RST << " fork() failed" RST << std::endl;
 			_response->buildErrorPage(500);
 			_response->setStatus(READY);
 			_response->formatResponseToStr();
@@ -238,6 +239,7 @@ void	CgiHandler::handleCgi()
 			close(_pipeFd[0]);
 			close(_pipeFdCgi[1]);
 			_cgiLaunched = true;
+			_lastActivity = std::time(NULL);
 		}
 	}
 
@@ -246,16 +248,23 @@ void	CgiHandler::handleCgi()
 	{
 		size_t chunkSize = std::min(static_cast<size_t>(CHUNK_SIZE), _request->getBody().size() - _bytesWritten);
 		ssize_t written = write(_pipeFd[1], _request->getBody().c_str() + _bytesWritten, chunkSize);
+		_lastActivity = std::time(NULL);
 
-		double progress = static_cast<double>(_bytesWritten) / _request->getBody().size() * 100;
-
-		std::cout << CLRL "Total Mb uploaded: " GOLD << static_cast<double>(_bytesWritten / 1000) << RST << " - Progress: " CYAN << progress << "%" RST CURSOR << std::endl;
+		// Afficher la progression si l'upload
+		if (_request->getMethod() == "POST" && _request->getUri() == "/cgi-bin/upload_file.py")
+		{
+			double progress = static_cast<double>(_bytesWritten) / _request->getBody().size() * 100; // Calculate progress percentage
+			progress = floor(progress * 100) / 100; // Limit to 2 decimal places
+			double bytesWrittenMb = static_cast<double>(_bytesWritten) / 1e+6; // Convert bytes to megabytes
+			bytesWrittenMb = floor(bytesWrittenMb * 100) / 100; // Limit to 2 decimal places
+			std::cout << CURSOR CLRL "(" REDD << _uploadFilename << RST ") Mb uploaded: " GOLD << bytesWrittenMb << RST << "\tProgress: " CYAN << progress << "%" RST CURSOREND << std::endl;
+		}
 
 		if (written >= 0)
 			_bytesWritten += written;
-		else if (written == -1)
+		else if (written == -1) 
 		{
-			std::cerr << "Error: write() failed" << std::endl;
+			std::cerr << GOLD "[Warning]" RST << " write() failed" RST << std::endl;
 			_response->buildErrorPage(500);
 			_response->setStatus(READY);
 			close(_pipeFd[1]);
@@ -272,9 +281,9 @@ void	CgiHandler::handleCgi()
 	// Attendre la fin du processus enfant avec l'option WNOHANG
 	int status;
 	pid_t result = waitpid(_cgiPid, &status, WNOHANG);
-	if (result == -1)
+	if (result <= -1)
 	{
-		std::cerr << "Error: waitpid() failed" << std::endl;
+		std::cerr << GOLD "[Warning]" RST << " waitpid() failed" RST << std::endl;
 		_response->buildErrorPage(500);
 		_response->setStatus(READY);
 		_response->formatResponseToStr();
@@ -282,6 +291,7 @@ void	CgiHandler::handleCgi()
 	}
 	else if (result > 0 && WIFEXITED(status))
 	{
+		_lastActivity = std::time(NULL);
 		// Lire la réponse complète du processus CGI
 		while (true)
 		{
@@ -300,17 +310,17 @@ void	CgiHandler::handleCgi()
 			}
 			else
 			{
-				std::cerr << "Error: read() failed" << std::endl;
+				std::cerr << GOLD "[Warning]" RST << " read() failed" RST << std::endl;
 				_response->buildErrorPage(500);
 				_response->setStatus(READY);
 				_response->formatResponseToStr();
+				close(_pipeFdCgi[0]);
 				return;
 			}
 		}
 
 		if (_cgiOutputReady)
 		{
-			std::cout << std::endl;
 			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
 			_response->_body = getCgiOutputResult();
 			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
@@ -327,10 +337,33 @@ void	CgiHandler::handleCgi()
 			}
 			_response->_status = READY;
 			_response->formatResponseToStr();
+			return;
 		}
 	}
+	else if (result == 0)
+		_response->setStatus(BUILDING);
+	else
+	{
+		std::cerr << GOLD "[Warning]" RST << " CGI process exited abnormally" RST << std::endl;
+		close(_pipeFd[1]);
+		close(_pipeFdCgi[0]);
+		_response->buildErrorPage(500);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return ;
+	}
 
-	_response->setStatus(BUILDING);
+	if (_lastActivity + CGI_TIMEOUT < std::time(NULL))
+	{
+		std::cerr << GOLD "[Warning]" RST << " CGI process timed out" RST << std::endl;
+		kill(_cgiPid, SIGKILL);
+		close(_pipeFd[1]);
+		close(_pipeFdCgi[0]);
+		_response->buildErrorPage(500);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return ;
+	}
 }
 
 std::string	CgiHandler::extractContentTypeCgiOutput()
@@ -354,7 +387,7 @@ void	CgiHandler::extractMultipartData()
 	size_t boundaryPos = contentType.find("boundary=");
 	if (boundaryPos == std::string::npos)
 	{
-		std::cerr << "Boundary non trouvé dans Content-Type." << std::endl;
+		std::cerr << GOLD "Boundary non trouvé dans Content-Type." RST << std::endl;
 		return;
 	}
 
@@ -365,7 +398,7 @@ void	CgiHandler::extractMultipartData()
 	size_t partStart = body.find(boundary);
 	if (partStart == std::string::npos)
 	{
-		std::cerr << "Boundary initial non trouvé dans le corps." << std::endl;
+		std::cerr << GOLD "Boundary initial non trouvé dans le corps." RST << std::endl;
 		return;
 	}
 	partStart += boundary.length(); // Juste après le boundary
@@ -381,7 +414,7 @@ void	CgiHandler::extractMultipartData()
 		headersEnd = body.find("\n\n", partStart);
 		if (headersEnd == std::string::npos)
 		{
-			std::cerr << "Fin des en-têtes non trouvée." << std::endl;
+			std::cerr << GOLD "Fin des en-têtes non trouvée." RST << std::endl;
 			return;
 		}
 		else
@@ -416,6 +449,7 @@ void	CgiHandler::extractMultipartData()
 	for (size_t i = 0; _envp[i]; i++)
 		newEnvs.push_back(_envp[i]);
 	newEnvs.push_back("FILENAME=" + filename);
+	_uploadFilename = filename;
 	for (size_t i = 0; _envp[i]; i++)
 		free(_envp[i]);
 	delete[] _envp;

@@ -47,6 +47,7 @@
 # define CLR "\033c"                       // Clear terminal (garde historique)
 # define CLRL "\033[2K"                    // Clear ligne terminal
 # define CURSOR "\033[H"				   // Retour au début de la ligne
+# define CURSOREND "\033[999C"             // Aller à la fin de la ligne
 # define BOLD "\033[1m"
 # define ITAL "\033[3m"
 # define SOUL "\033[4m"
