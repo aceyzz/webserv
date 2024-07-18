@@ -83,14 +83,38 @@ void	ParseConfig::parseServerConfig(Config* config, std::string remainingConfig)
 	std::istringstream iss(remainingConfig);
 	std::string line;
 
+	config->addErrorPage(200, "errors/200.html");
+	config->addErrorPage(201, "errors/201.html");
+	config->addErrorPage(204, "errors/204.html");
+	config->addErrorPage(301, "errors/301.html");
+	config->addErrorPage(302, "errors/302.html");
+	config->addErrorPage(303, "errors/303.html");
+	config->addErrorPage(307, "errors/307.html");
+	config->addErrorPage(400, "errors/400.html");
+	config->addErrorPage(401, "errors/401.html");
+	config->addErrorPage(403, "errors/403.html");
+	config->addErrorPage(404, "errors/404.html");
+	config->addErrorPage(405, "errors/405.html");
+	config->addErrorPage(413, "errors/413.html");
+	config->addErrorPage(414, "errors/414.html");
+	config->addErrorPage(415, "errors/415.html");
+	config->addErrorPage(429, "errors/429.html");
+	config->addErrorPage(499, "errors/499.html");
+	config->addErrorPage(500, "errors/500.html");
+	config->addErrorPage(501, "errors/501.html");
+	config->addErrorPage(502, "errors/502.html");
+	config->addErrorPage(503, "errors/503.html");
+	config->addErrorPage(504, "errors/504.html");
+	config->addErrorPage(505, "errors/505.html");
+
 	while (std::getline(iss, line))
 	{
 		if (line.find("listen") != std::string::npos) {
 			size_t pos = line.find("listen") + 6;
 			try {
-				config->setPort(std::stoi(line.substr(pos, line.find(";") - pos)));
+				config->addPort(std::stoi(line.substr(pos, line.find(";") - pos)));
 			} catch (std::exception &e) {
-				config->setPort(-1);
+				config->addPort(-1);
 				continue;
 			}
 		} else if (line.find("name") != std::string::npos) {
@@ -124,29 +148,6 @@ void	ParseConfig::parseServerConfig(Config* config, std::string remainingConfig)
 			config->setAutoindex(line.substr(pos, line.find(";", pos) - pos) == "on");
 		}
 	}
-	config->addErrorPage(200, "errors/200.html");
-	config->addErrorPage(201, "errors/201.html");
-	config->addErrorPage(204, "errors/204.html");
-	config->addErrorPage(301, "errors/301.html");
-	config->addErrorPage(302, "errors/302.html");
-	config->addErrorPage(303, "errors/303.html");
-	config->addErrorPage(307, "errors/307.html");
-	config->addErrorPage(400, "errors/400.html");
-	config->addErrorPage(401, "errors/401.html");
-	config->addErrorPage(403, "errors/403.html");
-	config->addErrorPage(404, "errors/404.html");
-	config->addErrorPage(405, "errors/405.html");
-	config->addErrorPage(413, "errors/413.html");
-	config->addErrorPage(414, "errors/414.html");
-	config->addErrorPage(415, "errors/415.html");
-	config->addErrorPage(429, "errors/429.html");
-	config->addErrorPage(499, "errors/499.html");
-	config->addErrorPage(500, "errors/500.html");
-	config->addErrorPage(501, "errors/501.html");
-	config->addErrorPage(502, "errors/502.html");
-	config->addErrorPage(503, "errors/503.html");
-	config->addErrorPage(504, "errors/504.html");
-	config->addErrorPage(505, "errors/505.html");
 }
 
 void	ParseConfig::parseLocationBlocks(Config* config, std::vector<std::string> locationBlocks)
@@ -229,8 +230,14 @@ void	ParseConfig::checkServerConfig()
 	{
 		Config* config = _configs[i];
 
-		if (config->getPort() == -1)
+		std::vector<int> ports = config->getPort();
+		if (ports.empty())
 			throw std::runtime_error("port not defined in server block " + config->getName());
+		for (size_t j = 0; j < ports.size(); j++)
+		{
+			if (ports[j] < 0 || ports[j] > 65535)
+				throw std::runtime_error("port bad defined in server block " + config->getName());
+		}
 		if (config->getName().empty())
 			throw std::runtime_error("name not defined in server block " + config->getName());
 		if (config->getRoot().empty())

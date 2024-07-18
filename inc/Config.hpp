@@ -6,7 +6,7 @@ class	Config
 {
 	private:
 		std::string						_name;
-		int								_port;
+		std::vector<int>				_port;
 		std::string						_root;
 		std::string						_index;
 		std::map<int, std::string>		_errorPages;
@@ -16,11 +16,11 @@ class	Config
 		std::map<int, std::string>		_errorMessages;
 
 	public:
-		Config() : _port(-1), _autoindex(false), _maxBodySize(-1) { setErrorMessages(); };
+		Config() : _autoindex(false), _maxBodySize(-1) { setErrorMessages(); };
 		~Config();
 		// Getters
 		std::string						getName() { return _name; };
-		int								getPort() { return _port; };
+		std::vector<int>				getPort() { return _port; };
 		std::string						getRoot() { return _root; };
 		std::string						getIndex() { return _index; };
 		std::map<int, std::string>		getErrorPages() { return _errorPages; };
@@ -33,7 +33,7 @@ class	Config
 
 		// Setters
 		void	setName(std::string name) { _name = name; };
-		void	setPort(int port) { _port = port; };
+		void	addPort(int port) { _port.push_back(port); };
 		void	setRoot(std::string root) { _root = root; };
 		void	setIndex(std::string index) { _index = index; };
 		void	addErrorPage(int code, std::string path) { _errorPages[code] = path; };

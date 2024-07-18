@@ -65,7 +65,9 @@ void	Config::printConfig()
 {
 	std::cout << CYAN "CONFIG: " RST << std::endl;
 	std::cout << GOLD "Name: " RST << _name << std::endl;
-	std::cout << GOLD "Port: " RST << _port << std::endl;
+	std::cout << GOLD "Port: " RST << std::endl;
+	for (size_t i = 0; i < _port.size(); i++)
+		std::cout << _port[i] << std::endl;
 	std::cout << GOLD "Root: " RST << _root << std::endl;
 	std::cout << GOLD "Index: " RST << _index << std::endl;
 	std::cout << GOLD "Error pages: " RST << std::endl;

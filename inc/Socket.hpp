@@ -37,7 +37,7 @@ class	Socket
 		void	setType(eSocketType type) { _type = type; };
 		void	setFD(int fd) { _fd = fd; };
 		void	setAddr(sockaddr_in addr) { _addr = addr; };
-		void	setPort(int port) { _port = port; };
+		void	addPort(int port) { _port = port; };
 		void	setIp(std::string ip) { _ip = ip; };
 		void	setServerPort(int port) { _serverPort = port; };
 

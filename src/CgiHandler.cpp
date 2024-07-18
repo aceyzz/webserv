@@ -33,7 +33,7 @@ void	CgiHandler::initEnvp()
 	std::vector<std::string> envp;
 	envp.push_back("SERVER_NAME=" + _config->getName());
 	envp.push_back("SERVER_PROTOCOL=" + _request->getVersionHTTP());
-	envp.push_back("SERVER_PORT=" + std::to_string(_config->getPort()));
+	// envp.push_back("SERVER_PORT=" + std::to_string(_config->getPort()));
 	envp.push_back("REQUEST_METHOD=" + _request->getMethod());
 	envp.push_back("REQUEST_URI=" + _request->getUri());
 	envp.push_back("PATH_INFO=" + _request->getUri());

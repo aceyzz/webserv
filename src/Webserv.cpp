@@ -3,7 +3,11 @@
 Webserver::Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config)
 {
 	for (size_t i = 0; i < _configs.size(); i++)
-		_configsByPort[_configs[i]->getPort()] = _configs[i];
+	{
+		std::vector<int> ports = _configs[i]->getPort();
+		for (size_t j = 0; j < ports.size(); j++)
+			_configsByPort[ports[j]] = _configs[i];
+	}
 
 	_logger = new Logger();
 }
@@ -49,7 +53,9 @@ void	Webserver::printConfigs()
 		std::cout << CYAN << "PRINT CONFIG (CLASS WEBSERVER):" << RST << std::endl;
 		std::cout << GRY2 "Address of config: " << config << std::endl;
 		std::cout << YLLW << "Name: " << RST << config->getName() << std::endl;
-		std::cout << YLLW << "Port: " << RST << config->getPort() << std::endl;
+		std::cout << YLLW << "Port: " RST << std::endl;
+		for (size_t i = 0; i < config->getPort().size(); i++)
+			std::cout << "  " << config->getPort()[i] << std::endl;
 		std::cout << YLLW << "Root: " << RST << config->getRoot() << std::endl;
 		std::cout << YLLW << "Index: " << RST << config->getIndex() << std::endl;
 		std::cout << YLLW << "Error pages: " << RST << std::endl;
@@ -94,7 +100,7 @@ void	Webserver::printConfigByPort()
 	{
 		Config* config = it->second;
 		std::cout << GRY2 "Address of config: " << config << std::endl;
-		std::cout << CYAN << "Port: " << RST << config->getPort() << std::endl;
+		std::cout << CYAN << "Port: " << RST << it->first << std::endl;
 		std::cout << CYAN << "Name: " << RST << config->getName() << std::endl;
 	}
 	std::cout << std::endl;
@@ -134,17 +140,21 @@ void	Webserver::initServer()
 	// Creation des sockets serveurs
 	for (size_t i = 0; i < _configs.size(); i++)
 	{
-		Config* config = _configs[i];
-		Socket* socket = new Socket(SERVER, AF_INET, SOCK_STREAM, 0, config->getPort(), config->getName());
-		_serverSockets.insert(std::pair<int, Socket*>(socket->getFD(), socket));
+		for (size_t j = 0; j < _configs[i]->getPort().size(); j++)
+		{
+			Config* config = _configs[i];
+			int port = config->getPort()[j];
+			Socket* socket = new Socket(SERVER, AF_INET, SOCK_STREAM, 0, port, config->getName());
+			_serverSockets.insert(std::pair<int, Socket*>(socket->getFD(), socket));
 
-		if (fcntl(socket->getFD(), F_SETFL, O_NONBLOCK) == -1)
-			throw std::runtime_error("fcntl() failed: " + std::string(strerror(errno)));
+			if (fcntl(socket->getFD(), F_SETFL, O_NONBLOCK) == -1)
+				throw std::runtime_error("fcntl() failed: " + std::string(strerror(errno)));
 
-		struct kevent	event;
-		EV_SET(&event, socket->getFD(), EVFILT_READ, EV_ADD, 0, 0, NULL);
-		if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
-			throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
+			struct kevent	event;
+			EV_SET(&event, socket->getFD(), EVFILT_READ, EV_ADD, 0, 0, NULL);
+			if (kevent(_kqueue, &event, 1, NULL, 0, NULL) == -1)
+				throw std::runtime_error("kevent() failed: " + std::string(strerror(errno)));
+		}
 	}
 
 	// Bind et listen des sockets serveurs
@@ -472,7 +482,7 @@ Config*	Webserver::getConfigForClient(int clientFD)
 		return (NULL);
 	}
 
-	int	serverPort = clientSocket->getServerPort();
+	int	serverPort = clientSocket->getServerPort(); 
 
 	Config* config = _configsByPort[serverPort];
 	if (!config)
