@@ -373,7 +373,7 @@ void	Response::sendResponse()
 	}
 
 	size_t	remainingBytes = _totalBytes - _bytesSent;
-	size_t	chunkSize = std::min(remainingBytes, (size_t)8196);
+	size_t	chunkSize = std::min(remainingBytes, (size_t)RESPONSE_SIZE);
 	_responseChunk = _resultResponse.substr(_bytesSent, chunkSize);
 
 	if (_request->getFD() == -1)

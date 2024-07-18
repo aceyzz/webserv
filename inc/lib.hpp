@@ -36,6 +36,7 @@
 #define MAX_URI_SIZE 2000
 #define BUFFER_SIZE 1024
 #define CHUNK_SIZE 4096
+#define RESPONSE_SIZE 8192
 #define HTTP_VERSION "HTTP/1.1"
 #define ISFILE 1
 #define ISDIR 2
