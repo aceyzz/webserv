@@ -4,7 +4,15 @@ int	g_signal = 1;
 
 inline int	errorReturn(std::string const &msg, const char *info)
 {
-	std::cerr << REDD "Error: " RST << YLLW << msg << " - " << info << RST << std::endl;
+	if (msg != "")
+		std::cerr << REDD "Error: " RST << YLLW << msg << RST;
+	else
+		std::cerr << REDD "Error." RST;
+
+	if (info)
+		std::cerr << YLLW " - " << info << RST << std::endl;
+	else
+		std::cerr << std::endl;
 	return (1);
 }
 
@@ -45,20 +53,30 @@ void	customSignals()
 
 int	main(int argc, char **argv)
 {
-	if (argc != 2)
+	if (argc == 1)
+	{
+		char *config = (char *)"config/default.conf";
+		argv[1] = config;
+	}
+	else if (argc != 2)
 		return (errorReturn("Usage: ./webserv <config_file>", NULL));
 
 	try
 	{
 		ParseConfig	parser(argv[1]);
 		Webserver	webserv(parser.getConfigs());
-		// webserv.printConfigs();
+		
+		if (DEBUG)
+			webserv.printConfigs();
 
 		customSignals();
 
 		// init le serveur
 		webserv.initServer();
-		// webserv.printSockets();
+		
+		if (DEBUG)
+			webserv.printSockets();
+		
 		webserv.runServer();
 	}
 	catch (std::exception &e) { return (errorReturn("execption", e.what())); }

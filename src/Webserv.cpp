@@ -392,7 +392,7 @@ bool	Webserver::responseManager(int clientFD)
 	if (!request)
 	{
 		std::cout << "Request of client not found" << std::endl;
-		return false;
+		return (false);
 	}
 
 	// Obtenir la configuration correspondante
@@ -400,7 +400,7 @@ bool	Webserver::responseManager(int clientFD)
 	if (!config)
 	{
 		std::cout << "Config for client not found" << std::endl;
-		return false;
+		return (false);
 	}
 
 	// Récupérer la réponse, ou la créer si non existante
@@ -419,12 +419,14 @@ bool	Webserver::responseManager(int clientFD)
 
 	if (response->getStatus() == READY || response->getStatus() == WRITING)
 	{
+		if (response->getBody().size() == 0)
+			response->buildErrorPage(204);
 		response->sendResponse();
 		if (response->getStatus() == SENT)
-			return true;
+			return (true);
 	}
 
-	return false;
+	return (false);
 }
 
 void	Webserver::closeClient(int fd)
