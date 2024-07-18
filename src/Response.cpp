@@ -25,6 +25,13 @@ Response::~Response()
 		_headers.clear();
 	if (_cgiHandler)
 		delete _cgiHandler;
+	if (_fileStream != NULL)
+	{
+		if (_fileStream->is_open())
+			_fileStream->close();
+		if (_fileStream)
+			delete _fileStream;
+	}
 }
 
 void	Response::printResponse()
@@ -298,6 +305,7 @@ void	Response::handleGet(const std::string &path)
 				_streamer = false;
 				_fileStream->close();
 				delete _fileStream;
+				_fileStream = NULL;
 			}
 			else
 				_status = BUILDING;

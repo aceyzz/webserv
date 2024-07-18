@@ -1,146 +1,42 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webserver</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #272a2b;
-            color: #f5f5f5;
-        }
-        header {
-            background: #0f7dac;
-            color: #f5f5f5;
-            padding: 10px 20px;
-            text-align: center;
-        }
-        footer {
-            background: #0f7dac;
-            color: #f5f5f5;
-            text-align: center;
-            padding: 10px 20px;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-        }
-        .navigation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 300px;
-            height: 100%;
-            background: rgba(85, 85, 85, 0.9);
-            color: #f5f5f5;
-            padding-top: 100px;
-            transform: translateX(-300px);
-            transition: transform 0.3s ease-in-out;
-        }
-        .navigation.show {
-            transform: translateX(0);
-        }
-        .navigation li {
-            margin-bottom: 10px;
-        }
-        .navigation ul {
-            list-style-type: none;
-            padding: 0;
-            margin: 0;
-        }
-        .navigation a {
-            display: block;
-            padding: 10px 20px;
-            background-color: #0f7dac;
-            color: #f5f5f5;
-            text-decoration: none;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s, color 0.3s;
-            margin: 10px 10px;
-        }
-        .navigation a:hover {
-            background-color: #272a2b;
-            color: #f5f5f5;
-        }
-        .toggle-button {
-            position: fixed;
-            top: 30px;
-            left: 40px;
-            cursor: pointer;
-            z-index: 999;
-            color: #272a2b;
-            background-color: #f5f5f5;
-            padding: 10px 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .toggle-button:hover {
-            background-color: #272a2b;
-            color: #f5f5f5;
-        }
-        .presentation-section, .game-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px;
-            background: #444;
-            border-radius: 8px;
-            margin: 20px auto;
-            width: 75%;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-			margin-top: 60px;
-        }
-        .presentation-section h1 {
-            margin-bottom: 20px; /* Espacement entre le titre et le texte */
-            font-size: 2em; /* Taille du titre */
-        }
-        .presentation-section p {
-            font-size: 1.2em; /* Taille du paragraphe */
-            max-width: 800px; /* Largeur maximale pour une meilleure lisibilité */
-            text-align: center; /* Centrage du texte */
-        }
-    </style>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Webserver</title>
+	<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Webserv</h1>
-    </header>
-    <div class="navigation" id="navigation">
-        <ul>
-			<li><a href="index.html" style="color: inherit;">Accueil</a></li>
-            <li><a href="authors.html" style="color: inherit;">Auteurs</a></li>
-			<li><a href="cgi-bin/cgi.html" style="color: inherit;">CGI</a></li>
-        </ul>
-    </div>
-    <div class="presentation-section">
-        <h1>Projet Webserv</h1>
-        <p>
-            Bienvenue sur Webserv, un projet de l'école 42 qui défie les étudiants de développer un serveur web en C++ de zéro. Ce projet met l'accent sur les principes fondamentaux des serveurs web, y compris la gestion des requêtes HTTP, le service de fichiers statiques, et la gestion des connexions multiples. À travers Webserv, les étudiants acquièrent une expertise pratique en programmation réseau et en gestion d'erreurs, préparant ainsi les terrains pour des applications web robustes et efficaces. Rejoignez-nous pour explorer les profondeurs du développement web!
-        </p>
-    </div>
-    <div class="toggle-button" onclick="toggleNavigation()">
-        Menu
-    </div>
-    <div class="game-section">
-		<p>Parce que les mini-jeux ca fait toujours plaisir...</p>
-        <iframe src="https://www.onlinegames.io/games/2023/q2/dinosaur-game/index.html" style="width: 100%; height: 500px; border: none;" muted></iframe>
-    </div>
-    <footer>
-        <p>Webserv Project - École 42</p>
-    </footer>
-
-    <script>
-        function toggleNavigation() {
-            var navigation = document.getElementById("navigation");
-            navigation.classList.toggle("show");
-        }
-    </script>
+	<header>
+		<h1>Webserv</h1>
+	</header>
+	<div class="navigation" id="navigation">
+		<ul>
+			<li><a href="index.html">Accueil</a></li>
+			<li><a href="authors.html">Auteurs</a></li>
+			<li><a href="cgi-bin/cgi.html">CGI</a></li>
+		</ul>
+	</div>
+	<div class="presentation-section">
+		<img src="https://games.42lausanne.ch/img/42Lausanne_logo_fondblanc.png" alt="42 Lausanne Logo">
+		<h1>Projet Webserv</h1>
+		<p>
+			Bienvenue sur Webserv, un projet de l'école 42 qui défie les étudiants de développer un serveur web en C++ de zéro. Ce projet met l'accent sur les principes fondamentaux des serveurs web, y compris la gestion des requêtes HTTP, le service de fichiers statiques, et la gestion des connexions multiples. À travers Webserv, les étudiants acquièrent une expertise pratique en programmation réseau et en gestion d'erreurs, préparant ainsi les terrains pour des applications web robustes et efficaces. Rejoignez-nous pour explorer les profondeurs du développement web!
+		</p>
+	</div>
+	<div class="toggle-button" onclick="toggleNavigation()">
+		Menu
+	</div>
+	<div class="color-toggle-button" onclick="toggleDarkMode()">
+		Light/Dark
+	</div>
+	<div class="game-section">
+		<p>Parce que les mini-jeux ça fait toujours plaisir...</p>
+		<iframe src="https://www.onlinegames.io/games/2023/q2/dinosaur-game/index.html" style="width: 100%; height: 500px; border: none;" muted></iframe>
+	</div>
+	<footer>
+		<p>Webserv Project - École 42</p>
+	</footer>
+	<script src="script.js"></script>
 </body>
 </html>

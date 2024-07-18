@@ -61,6 +61,24 @@ def get_raw_post_data():
 
     return raw_data
 
+def check_file_data(file_data):
+	"""Function to check if the file data is empty."""
+	if not file_data:
+		print(create_html_response("No file data received.", False))
+		sys.exit(1)
+	"""Check if there is spaces inside the filename."""
+	filename = os.getenv('FILENAME')
+	if ' ' in filename:
+		print(create_html_response("Filename cannot contain spaces.", False))
+		sys.exit(1)
+	"""Check the filetype if it a forbidden file type."""
+	file_type = filename.split('.')[-1]
+	forbidden_file_types = ['php', 'py', 'pl', 'sh', 'rb', 'cgi', 'java', 'jsp', 'asp', 'aspx', 'html', 'htm', 'shtml', 'xhtml', 'xml', 'css', 'js', 'json', 'htaccess', 'conf', 'htpasswd', 'log', 'bak', 'sql', 'sqlite', 'db', 'dbf', 'csv', 'ini', 'sh', 'bat', 'cmd', 'ps1', 'psm1', 'psd1', 'ps1xml', 'psc1', 'pssc', 'msh', 'msh1', 'msh2', 'mshxml', 'msh1xml', 'msh2xml', 'scf', 'lnk', 'inf', 'reg', 'dll', 'vbs', 'vbe', 'js', 'jse', 'ws', 'wsf', 'wsc', 'wsh', 'ps', 'psc1', 'psc2', 'msh', 'msh1', 'msh2', 'mshxml', 'msh1xml', 'msh2xml', 'scf', 'lnk', 'inf', 'reg', 'dll', 'vbs', 'vbe', 'js', 'jse', 'ws', 'wsf', 'wsc', 'wsh', 'ps', 'psc1', 'psc2', 'msh', 'msh1', 'msh2', 'mshxml', 'msh1xml', 'msh2xml', 'scf', 'lnk', 'inf', 'reg', 'dll', 'vbs', 'vbe', 'js', 'jse', 'ws', 'wsf', 'wsc', 'wsh', 'ps', 'psc1', 'psc2', 'msh', 'msh1', 'msh2', 'mshxml', 'msh1xml', 'msh2xml', 'scf', 'lnk', 'inf', 'reg', 'dll', 'vbs', 'vbe', 'js', 'jse', 'ws', 'wsf', 'wsc', 'wsh', 'ps', 'psc1', 'psc2']
+	for file_type in forbidden_file_types:
+		if file_type in filename:
+			print(create_html_response("File type not allowed.", False))
+			sys.exit(1)
+
 def save_file(filename, file_data):
     """Function to save the file data to the specified directory."""
     new_file_name = f"user_{int(time.time())}_{filename}"
@@ -77,6 +95,8 @@ def save_file(filename, file_data):
 # Main script execution
 filename = os.getenv('FILENAME')
 file_data = get_raw_post_data()
+
+check_file_data(file_data)
 
 if filename:
     saved_file_name = save_file(filename, file_data)

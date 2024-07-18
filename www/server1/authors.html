@@ -1,178 +1,51 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Webserver</title>
-	<style>
-		* {
-			box-sizing: border-box;
-		}
-		body {
-			font-family: Arial, sans-serif;
-			margin: 0;
-			padding: 0;
-			background: #272a2b; /* Dark background */
-			color: #f5f5f5; /* Light text color */
-		}
-		header {
-			background: #0f7dac; /* Light orange header */
-			color: #f5f5f5; /* Light text color */
-			padding: 10px 20px;
-			text-align: center;
-		}
-		footer {
-			background: #0f7dac; /* Light orange header */
-			color: #f5f5f5; /* Light text color */
-			text-align: center;
-			padding: 10px 20px;
-			position: absolute;
-			bottom: 0;
-			width: 100%;
-		}
-		.navigation {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 300px;
-			height: 100%;
-			background: rgba(85, 85, 85, 0.9); /* Dark navigation background with transparency */
-			color: #f5f5f5; /* Light text color */
-			padding: 0px;
-			transition: transform 0.3s ease-in-out;
-			transform: translateX(-300px);
-			padding-top: 100px;
-		}
-		.navigation.show {
-			transform: translateX(0);
-		}
-		.navigation li {
-			margin-bottom: 10px;
-		}
-		.navigation ul {
-			list-style-type: none; /* Enlève les puces */
-			padding: 0; /* Enlève le padding par défaut */
-			margin: 0; /* Enlève la marge par défaut */
-		}
-		.navigation a {
-			display: block;
-			padding: 10px 20px;
-			background-color: #0f7dac; /* Couleur de fond jaune, similaire à l'en-tête et au pied de page */
-			color: #f5f5f5; /* Couleur de texte clair */
-			text-decoration: none;
-			border-radius: 5px; /* Bords arrondis */
-			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombre pour un effet de relief */
-			transition: background-color 0.3s, color 0.3s; /* Transitions pour les effets au survol */
-			margin: 10px 10px; /* Espacement pour éviter que les boutons se touchent */
-		}
-		.navigation a:hover {
-			background-color: #272a2b; /* Couleur de fond foncée au survol */
-			color: #f5f5f5; /* Maintient la couleur de texte clair pour contraste */
-		}
-		.toggle-button {
-			position: fixed;
-			top: 30px;
-			left: 40px;
-			cursor: pointer;
-			z-index: 999;
-			color: #272a2b; /* Couleur de fond du corps pour le texte */
-			background-color: #f5f5f5; /* Couleur claire pour le fond */
-			padding: 10px 20px;
-			border-radius: 5px; /* Bords arrondis */
-			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3); /* Ombre pour un effet de relief */
-			border: none; /* Pas de bordure pour un look plus moderne */
-			font-size: 16px; /* Taille de police adéquate */
-			transition: background-color 0.3s, color 0.3s; /* Transitions pour les effets au survol */
-		}
-		.toggle-button:hover {
-			background-color: #272a2b; /* Couleur au survol pour un feedback visuel */
-			color: #f5f5f5; /* Changement de couleur de texte au survol */
-		}
-		.authors {
-			margin-top: 40px;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-		}
-		.profile-section {
-			display: flex;
-			align-items: center;
-			padding: 40px;
-			padding-bottom: 50px;
-			background: #444; /* Utilisation de la même couleur de fond que les autres contenus */
-			border-radius: 8px;
-			margin: 20px auto;
-			width: 75%; 
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-		}
-		.profile-photo {
-			width: 100px; /* Taille de la photo de profil */
-			height: 100px;
-			border-radius: 50%; /* Photo de profil ronde */
-			margin-right: 20px; /* Espace entre la photo et le texte */
-		}
-		.profile-info {
-			color: #f5f5f5; /* Couleur du texte clair */
-		}
-		.profile-info a {
-			display: inline-block;
-			padding: 8px 12px;
-			margin-top: 10px;
-			background-color: #0f7dac; /* Couleur de fond orange clair, comme l'en-tête et le pied de page */
-			color: #f5f5f5; /* Couleur de texte clair */
-			text-decoration: none;
-			border-radius: 5px; /* Bords arrondis pour les boutons */
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Ombre pour donner un effet en relief */
-			transition: background-color 0.3s; /* Animation de transition pour effet au survol */
-		}
-		.profile-info a:hover {
-			background-color: #b49a34; /* Changement de couleur au survol pour un feedback visuel */
-		}
-	</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auteurs - Webserver</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-	<header>
-		<h1>Auteurs</h1>
-	</header>
-	<div class="navigation" id="navigation">
-		<ul>
-			<li><a href="index.html" style="color: inherit;">Accueil</a></li>
-            <li><a href="authors.html" style="color: inherit;">Auteurs</a></li>
-			<li><a href="cgi-bin/cgi.html" style="color: inherit;">CGI</a></li>
-		</ul>
-	</div>
-	<div class="authors" id="authors">
-		<div class="profile-section">
-			<img src="https://avatars.githubusercontent.com/u/112768475?v=4" alt="Profile Photo" class="profile-photo">
-			<div class="profile-info">
-				<h1>Cédric</h1>
-				<p>Sorti de phramacie, immergé dans le monde de la technologie, avec une passion pour tout ce qui est tech. Étudiant à l'école 42 Lausanne depuis octobre 2023, travaillant sur divers projets pour améliorer les compétences en programmation et en cybersécurité.</p>
-				<a href="https://profile.intra.42.fr/users/cedmulle" target="_blank" style="color: inherit;">Intra 42</a>
-				<a href="https:/www.github.com/aceyzz" target="_blank" style="color: inherit;">Profil Github</a>
-			</div>
-		</div>
-		<div class="profile-section">
-			<img src="https://avatars.githubusercontent.com/u/146819291?v=4" alt="Profile Photo" class="profile-photo">
-			<div class="profile-info">
-				<h1>Christopher</h1>
-				<p>D'un parcours en cuisine, des fast-foods aux restaurants étoilés, à une reconversion en informatique après la naissance d'un fils en 2022. Formation à l'école 42 Lausanne, avec spécialisation en cybersécurité et intelligence artificielle, démontrant résilience et adaptabilité face aux défis constants du domaine.</p>
-				<a href="https://profile.intra.42.fr/users/waziz" target="_blank" style="color: inherit;">Intra 42</a>
-				<a href="https://github.com/ChrstphrChevalier" target="_blank" style="color: inherit;">Profil Github</a>
-			</div>
-		</div>
-	</div>
-	<div class="toggle-button" onclick="toggleNavigation()">
-		Menu
-	</div>
-	<footer>
-		<p>Webserv Project - École 42</p>
-	</footer>
-
-	<script>
-		function toggleNavigation() {
-			var navigation = document.getElementById("navigation");
-			navigation.classList.toggle("show");
-		}
-	</script>
+    <header>
+        <h1>Auteurs</h1>
+    </header>
+    <div class="navigation" id="navigation">
+        <ul>
+            <li><a href="index.html">Accueil</a></li>
+            <li><a href="authors.html">Auteurs</a></li>
+            <li><a href="cgi-bin/cgi.html">CGI</a></li>
+        </ul>
+    </div>
+    <div class="authors">
+        <div class="profile-section">
+            <img src="https://avatars.githubusercontent.com/u/112768475?v=4" alt="Profile Photo" class="profile-photo">
+            <div class="profile-info">
+                <h1>Cédric</h1>
+                <p>Sorti de phramacie, immergé dans le monde de la technologie, avec une passion pour tout ce qui est tech. Étudiant à l'école 42 Lausanne depuis octobre 2023, travaillant sur divers projets pour améliorer les compétences en programmation et en cybersécurité.</p>
+                <a href="https://profile.intra.42.fr/users/cedmulle" target="_blank">Intra 42</a>
+                <a href="https://www.github.com/aceyzz" target="_blank">Profil Github</a>
+            </div>
+        </div>
+        <div class="profile-section">
+            <img src="https://avatars.githubusercontent.com/u/146819291?v=4" alt="Profile Photo" class="profile-photo">
+            <div class="profile-info">
+                <h1>Christopher</h1>
+                <p>D'un parcours en cuisine, des fast-foods aux restaurants étoilés, à une reconversion en informatique après la naissance d'un fils en 2022. Formation à l'école 42 Lausanne, avec spécialisation en cybersécurité et intelligence artificielle, démontrant résilience et adaptabilité face aux défis constants du domaine.</p>
+                <a href="https://profile.intra.42.fr/users/waziz" target="_blank">Intra 42</a>
+                <a href="https://github.com/ChrstphrChevalier" target="_blank">Profil Github</a>
+            </div>
+        </div>
+    </div>
+    <div class="toggle-button" onclick="toggleNavigation()">
+        Menu
+    </div>
+    <div class="color-toggle-button" onclick="toggleDarkMode()">
+        Light/Dark
+    </div>
+    <footer>
+        <p>Webserv Project - École 42</p>
+    </footer>
+    <script src="script.js"></script>
 </body>
 </html>
