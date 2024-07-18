@@ -182,6 +182,7 @@ void	CgiHandler::handleCgi()
 
 	_response->setStatus(BUILDING);
 
+	// Si CGI n'est pas encore lancé, premier appel donc init + fork + execve
 	if (!_cgiLaunched)
 	{
 		// Check si le body est vide, construire la page 400 et set la response comme ready
@@ -278,9 +279,11 @@ void	CgiHandler::handleCgi()
 
 	_response->setStatus(BUILDING);
 
-	// Attendre la fin du processus enfant avec l'option WNOHANG
+	// "Attendre" la fin du processus enfant avec l'option WNOHANG, pour serveur non bloquant
 	int status;
 	pid_t result = waitpid(_cgiPid, &status, WNOHANG);
+
+	// Si le processus CGI est terminé et que le body a été entièrement écrit
 	if (result <= -1)
 	{
 		std::cerr << GOLD "[Warning]" RST << " waitpid() failed" RST << std::endl;
@@ -319,12 +322,14 @@ void	CgiHandler::handleCgi()
 			}
 		}
 
+		// Si le CGI a tout écrit, la réponse est prête à être envoyée au client
 		if (_cgiOutputReady)
 		{
 			std::cout << CLRALL << std::endl;
 			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
 			_response->_body = getCgiOutputResult();
 			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
+			
 			// Si upload de fichier, retourner 201, sinon 200
 			if (_request->getMethod() == "POST" && _request->getUri() == "/cgi-bin/upload_file.py")
 			{
@@ -338,7 +343,7 @@ void	CgiHandler::handleCgi()
 			}
 			_response->_status = READY;
 			_response->formatResponseToStr();
-			return;
+			return ;
 		}
 	}
 	else if (result == 0)
