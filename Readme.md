@@ -50,7 +50,7 @@ make
 ## Auteurs
 
 - [cedmulle](https://github.com/aceyzz) - [intra42](https://profile.intra.42.fr/users/cedmulle)
-- [waziz](https://github.com/ChrstphrChevalier) - [intra42](https://profile.intra.42.fr/users/waziz)
+- [cchevalier](https://github.com/ChrstphrChevalier) - [intra42](https://profile.intra.42.fr/users/waziz)
 
 <br>
 
