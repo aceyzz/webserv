@@ -56,7 +56,7 @@ void	CgiHandler::initArgs()
 	Cgi *cgi = _route->getCgi();
 	std::vector<std::string> path = split(cgi->getPath(), " ");
 	std::vector<std::string> extensions = split(cgi->getExtension(), " ");
-	
+
 	// Stocker chaque extension avec son path
 	std::map<std::string, std::string> cgiPairs;
 	for (size_t i = 0; i < extensions.size(); i++)
@@ -131,12 +131,14 @@ CgiHandler::~CgiHandler()
 		for (size_t i = 0; _envp[i]; i++)
 			free(_envp[i]);
 		delete[] _envp;
+		_envp = NULL;
 	}
 	if (_args)
 	{
 		for (size_t i = 0; _args[i]; i++)
 			free(_args[i]);
 		delete[] _args;
+		_args = NULL;
 	}
 	if (_pipeFd[0] != -1)
 		close(_pipeFd[0]);
@@ -348,6 +350,16 @@ void	CgiHandler::handleCgi()
 	}
 	else if (result == 0)
 		_response->setStatus(BUILDING);
+	else if (WEXITSTATUS(status) == 15)
+	{
+		close(_pipeFd[1]);
+		close(_pipeFdCgi[0]);
+		_response->buildErrorPage(415);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return ;
+	
+	}
 	else
 	{
 		std::cerr << GOLD "[Warning]" RST << " CGI process exited abnormally" RST << std::endl;
@@ -394,6 +406,8 @@ void	CgiHandler::extractMultipartData()
 	if (boundaryPos == std::string::npos)
 	{
 		std::cerr << GOLD "Boundary non trouvé dans Content-Type." RST << std::endl;
+		_response->buildErrorPage(400);
+		_response->setStatus(READY);
 		return;
 	}
 
@@ -405,6 +419,8 @@ void	CgiHandler::extractMultipartData()
 	if (partStart == std::string::npos)
 	{
 		std::cerr << GOLD "Boundary initial non trouvé dans le corps." RST << std::endl;
+		_response->buildErrorPage(400);
+		_response->setStatus(READY);
 		return;
 	}
 	partStart += boundary.length(); // Juste après le boundary
@@ -421,6 +437,8 @@ void	CgiHandler::extractMultipartData()
 		if (headersEnd == std::string::npos)
 		{
 			std::cerr << GOLD "Fin des en-têtes non trouvée." RST << std::endl;
+			_response->buildErrorPage(400);
+			_response->setStatus(READY);
 			return;
 		}
 		else
@@ -459,6 +477,7 @@ void	CgiHandler::extractMultipartData()
 	for (size_t i = 0; _envp[i]; i++)
 		free(_envp[i]);
 	delete[] _envp;
+	_envp = NULL;
 	_envp = new char*[newEnvs.size() + 1];
 	for (size_t i = 0; i < newEnvs.size(); i++)
 		_envp[i] = strdup(newEnvs[i].c_str());

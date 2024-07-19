@@ -213,6 +213,8 @@ std::vector<std::string>	split(const std::string &str, const std::string &delim)
 
 bool	isCgiRequest(const std::string &uri, const std::string &validExtensions)
 {
+	if (validExtensions == "")
+		return (false);
 	std::string	extension = getFileExtension(uri);
 	std::vector<std::string>	extensions = split(validExtensions, " ");
 

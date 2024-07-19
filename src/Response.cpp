@@ -24,13 +24,19 @@ Response::~Response()
 	if (_headers.size() > 0)
 		_headers.clear();
 	if (_cgiHandler)
+	{
 		delete _cgiHandler;
+		_cgiHandler = NULL;
+	}
 	if (_fileStream != NULL)
 	{
 		if (_fileStream->is_open())
 			_fileStream->close();
 		if (_fileStream)
+		{
 			delete _fileStream;
+			_fileStream = NULL;
+		}
 	}
 }
 
@@ -232,18 +238,20 @@ void	Response::interpretRequest()
 	}
 
 	// METHODES gérées: GET, POST et DELETE
-	if (method == "POST" && isAllowedMethod(method, route) && !isCgiRequest(uri, route->getCgiExtension()))
+	if (method == "POST" && isAllowedMethod(method, route) && !route->getCgiEnabled())
 	{
 		// Changer l'URI pour le mettre sur upload_file.py pour le POST, sans se preocupper de Cgi actif ou non
 		uri = "/cgi-bin/upload_file.py";
 		_request->setUri(uri);
+		route = _config->getRoute(uri);
 	}
 	if (route->getCgi() && isCgiRequest(uri, route->getCgiExtension()) && isAllowedMethod(method, route))
 	{
 		// Test de CGI pour debug
 		if (!_cgiHandler)
 			_cgiHandler = new CgiHandler(route, _request, this, _config, _kqueue);
-		_cgiHandler->handleCgi();
+		if (_status != READY)
+			_cgiHandler->handleCgi();
 		if (_cgiHandler->getCgiOutputReady())
 			_status = READY;
 	}

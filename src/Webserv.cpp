@@ -15,20 +15,49 @@ Webserver::Webserver(std::vector<Config*> config) : _kqueue(-1), _configs(config
 Webserver::~Webserver()
 {
 	for (std::map<int, Socket*>::iterator it = _serverSockets.begin(); it != _serverSockets.end(); it++)
+	{
 		if (it->second != NULL)
+		{
 			delete it->second;
+			it->second = NULL;
+		}
+	}
 	_serverSockets.clear();
 	for (size_t i = 0; i < _clientSockets.size(); i++)
+	{
 		if (_clientSockets[i] != NULL)
+		{
 			delete _clientSockets[i];
+			_clientSockets[i] = NULL;
+		}
+	}
 	_clientSockets.clear();
 	for (std::map<int, Request*>::iterator it = _requests.begin(); it != _requests.end(); it++)
+	{
 		if (it->second != NULL)
+		{
 			delete it->second;
+			it->second = NULL;
+		}
+	}
 	_requests.clear();
 	for (std::map<int, Response*>::iterator it = _responses.begin(); it != _responses.end(); it++)
+	{
 		if (it->second != NULL)
+		{
 			delete it->second;
+			it->second = NULL;
+		}
+	}
+	_responses.clear();
+	for (std::vector<Config*>::iterator it = _configs.begin(); it != _configs.end(); it++)
+	{
+		if (*it != NULL)
+		{
+			delete *it;
+			*it = NULL;
+		}
+	}
 	_responses.clear();
 
 	// Remove all file descriptors from the kqueue
@@ -38,10 +67,16 @@ Webserver::~Webserver()
 	EV_SET(&event, 0, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
 	kevent(_kqueue, &event, 1, NULL, 0, NULL);
 	if (_kqueue != -1)
+	{
 		close(_kqueue);
+		_kqueue = -1;
+	}
 	
 	if (_logger)
+	{
 		delete _logger;
+		_logger = NULL;
+	}
 }
 
 void	Webserver::printConfigs()
@@ -108,12 +143,12 @@ void	Webserver::printConfigByPort()
 
 void	Webserver::printSockets()
 {
-	std::cout << GOLD "PRINT SERVER SOCKETS (CLASS WEBSERVER):" RST << std::endl;
-	for (size_t i = 0; i < _serverSockets.size(); i++)
-	{
-		Socket* socket = _serverSockets[i];
-		socket->printSocket();
-	}
+	// std::cout << GOLD "PRINT SERVER SOCKETS (CLASS WEBSERVER):" RST << std::endl;
+	// for (size_t i = 0; i < _serverSockets.size(); i++)
+	// {
+	// 	Socket* socket = _serverSockets[i];
+	// 	socket->printSocket(); 
+	// }
 }
 
 bool	Webserver::isServerSocket(int fd)
@@ -453,16 +488,19 @@ void	Webserver::closeClient(int fd)
 	if (_requests[fd])
 	{
 		delete _requests[fd];
+		_requests[fd] = NULL;
 		_requests.erase(fd);
 	}
 	if (_responses[fd])
 	{
 		delete _responses[fd];
+		_responses[fd] = NULL;
 		_responses.erase(fd);
 	}
 	if (_clientSockets[fd])
 	{
 		delete _clientSockets[fd];
+		_clientSockets[fd] = NULL;
 		_clientSockets.erase(fd);
 	}
 
