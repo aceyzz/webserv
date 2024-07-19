@@ -1,9 +1,21 @@
 #include "Config.hpp"
 
+Config::Config()
+{
+	_name = "";
+	_root = "";
+	_index = "";
+	_autoindex = false;
+	_maxBodySize = 0;
+	_routes.clear();
+	setErrorMessages();
+}
+
 Config::~Config()
 {
 	for (std::map<std::string, Route*>::iterator it = _routes.begin(); it != _routes.end(); it++)
-		delete (it->second);
+		if (it->second)
+			delete (it->second);
 }
 
 Route*	Config::getRoute(std::string uri)

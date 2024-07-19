@@ -7,11 +7,6 @@ ParseConfig::ParseConfig(std::string path)
 
 ParseConfig::~ParseConfig()
 {
-	for (size_t i = 0; i < _configs.size(); i++)
-	{
-		if (_configs[i])
-			delete _configs[i];
-	}
 }
 
 void	ParseConfig::loadConfig(std::string path)

@@ -16,7 +16,7 @@ class	Config
 		std::map<int, std::string>		_errorMessages;
 
 	public:
-		Config() : _autoindex(false), _maxBodySize(-1) { setErrorMessages(); };
+		Config();
 		~Config();
 		// Getters
 		std::string						getName() { return _name; };
