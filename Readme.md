@@ -15,9 +15,9 @@ Ce programme implémente un serveur web capable de servir des fichiers statiques
 
 ## Documentations
 
-- Voir ce [document](./webserv.md) pour plus d'informations sur le fonctionnement de notre implémentation du programme.
-- Voir ce [document](./index_http.md) pour plus d'informations sur la liste des retours HTTP implémentés.
-- Voir ce [document](./webserv.md) pour plus d'informations sur les liens vers des ressources utiles pour le projet.
+- Voir ce [document](docs/webserv.md) pour plus d'informations sur le fonctionnement de notre implémentation du programme.
+- Voir ce [document](docs/index_http.md) pour plus d'informations sur la liste des retours HTTP implémentés.
+- Voir ce [document](docs/Readme.md) pour plus d'informations sur les liens vers des ressources utiles pour le projet.
 
 <br>
 
