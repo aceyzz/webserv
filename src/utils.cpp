@@ -2,13 +2,14 @@
 
 std::string	strToHtml(std::string content)
 {
-	std::string	html = "<html>\n";
+	std::string	html;
+	html += "<html>\n";
 	html += "<head>\n";
 	html += "<title>Webserver</title>\n";
 	html += "<link rel=\"icon\" href=\"" FAVICON "\" type=\"image/x-icon\"/>\n";
 	html += "</head>\n";
 	html += "<body>\n";
-	html += "<h1>";
+	html += "<h1 style=\"text-align:center;\" color=\"#333333\">";
 	html += content;
 	html += "</h1>\n";
 	html += "</body>\n";

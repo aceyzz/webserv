@@ -82,11 +82,15 @@ void	Response::buildErrorPage(int errorCode)
 			_body = content;
 		}
 		else
-			_body = strToHtml(_config->getErrorMessage(errorCode));
+			_body = strToHtml(std::to_string(errorCode) + " " + _config->getErrorMessage(errorCode));
 	}
 	_HTTPcode = errorCode;
 	_statusMessage = _config->getErrorMessage(errorCode);
 	_status = READY;
+
+	// Si le content type n'est pas défini, on le met en text/html
+	if (_headers.find("Content-Type") == _headers.end())
+		_headers["Content-Type"] = "text/html";
 }
 
 void	Response::formatResponseToStr()
