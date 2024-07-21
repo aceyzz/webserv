@@ -8,6 +8,7 @@ OBJ_DIR		= obj/
 INC_DIR		= inc/
 
 SRC			= $(SRC_DIR)CgiHandler.cpp \
+			  $(SRC_DIR)Checker.cpp \
 			  $(SRC_DIR)Config.cpp \
 			  $(SRC_DIR)Logger.cpp \
 			  $(SRC_DIR)main.cpp \
@@ -23,6 +24,7 @@ OBJ			= $(addprefix $(OBJ_DIR), $(notdir $(SRC:.cpp=.o)))
 
 INC			= $(INC_DIR)Cgi.hpp \
 				$(INC_DIR)CgiHandler.hpp \
+				$(INC_DIR)Checker.hpp \
 				$(INC_DIR)colors.hpp \
 				$(INC_DIR)Config.hpp \
 				$(INC_DIR)lib.hpp \

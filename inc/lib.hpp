@@ -26,11 +26,13 @@
 #include <map>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 #include "colors.hpp"
 #include "utils.hpp"
 
 #define DEBUG 0
+#define DEBUG_CHECK 1
 #define MAX_EVENTS 500
 #define MAX_LISTEN 1000
 #define MAX_URI_SIZE 2000

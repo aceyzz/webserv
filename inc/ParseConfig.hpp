@@ -12,6 +12,8 @@ class	ParseConfig
 		ParseConfig(std::string path);
 		~ParseConfig();
 
+		void	trimComments(std::string *str);
+
 		// Getters
 		std::vector<Config*>	getConfigs() const { return _configs; };
 

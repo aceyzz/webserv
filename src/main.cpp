@@ -1,4 +1,5 @@
 #include "Config.hpp"
+#include "Checker.hpp"
 
 int	g_signal = 1;
 
@@ -63,6 +64,7 @@ int	main(int argc, char **argv)
 
 	try
 	{
+		Checker		check(argv[1]);
 		ParseConfig	parser(argv[1]);
 		Webserver	webserv(parser.getConfigs());
 		

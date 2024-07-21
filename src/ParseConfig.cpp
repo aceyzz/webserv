@@ -9,6 +9,14 @@ ParseConfig::~ParseConfig()
 {
 }
 
+void	ParseConfig::trimComments(std::string *str)
+{
+	size_t	pos = str->find("#");
+
+	if (pos != std::string::npos)
+		str->erase(pos);
+}
+
 void	ParseConfig::loadConfig(std::string path)
 {
 	std::ifstream	file(path.c_str());
@@ -21,7 +29,8 @@ void	ParseConfig::loadConfig(std::string path)
 
 	while (std::getline(file, line))
 	{
-		if (line.empty() || line[0] == '#')
+		trimComments(&line);
+		if (line.empty())
 			continue;
 
 		if (line.find("server {") != std::string::npos)
