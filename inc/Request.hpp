@@ -6,8 +6,7 @@ enum	RequestStatus
 {
 	RECEIVING,
 	COMPLETE,
-	ERROR,
-	CONTINUE
+	ERROR
 };
 
 class	Request
