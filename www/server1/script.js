@@ -46,3 +46,20 @@ function toggleBitcoinPrice() {
         bitcoinPriceElement.style.display = 'none';
     }
 }
+
+function toggleViewCookie() {
+	var cookieElement = document.getElementById('cookieElement');
+	if (cookieElement.style.display === 'none' || cookieElement.style.display === '') {
+		cookieElement.style.display = 'block';
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', '../cgi-bin/cookie.sh', true);
+		xhr.onload = function() {
+			if (this.status == 200) {
+				cookieElement.innerHTML = this.responseText;
+			}
+		};
+		xhr.send();
+	} else {
+		cookieElement.style.display = 'none';
+	}
+}

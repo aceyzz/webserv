@@ -46,3 +46,5 @@
 #define LOGENABLED 0
 #define DEFAULT_LOG "log/access.log"
 #define CGI_TIMEOUT 7
+#define COOKIE_SIZE 32
+#define COOKIE_AGE "3600" // 1 heure

@@ -51,6 +51,7 @@ void	CgiHandler::initEnvp()
 	envp.push_back("REMOTE_PORT=" + std::to_string(_response->getClientSocket()->getPort()));
 	envp.push_back("CONTENT_LENGTH=" + std::to_string(_request->getBody().size()));
 	envp.push_back("CONTENT_TYPE=" + _request->getHeaders()["Content-Type"]);
+	envp.push_back("HTTP_COOKIE=" + _request->getHeaders()["Cookie"]);
 	// Creation du tableau d'env
 	_envp = new char*[envp.size() + 1];
 	for (size_t i = 0; i < envp.size(); i++)

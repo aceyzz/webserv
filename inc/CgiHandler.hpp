@@ -32,7 +32,7 @@ class	CgiHandler
 		// Gros fichiers a envoyer au STDIN du cgi:
 		// - le parent ecrit morceaux par morceaux dans le pipe du STDIN du cgi
 		// - le cgi lit morceaux par morceaux dans son STDIN
-		// - le cgi ecrit en entier dans son STDOUT (? ou dans un fichier temporaire ?)
+		// - le cgi ecrit en entier dans son STDOUT
 		// - le parent lit morceaux par morceaux dans le pipe de son STDIN
 		size_t		_bytesWritten;
 
@@ -49,9 +49,11 @@ class	CgiHandler
 		std::string	getCgiOutputResult() { return _cgiOutputResult; };
 		bool		getCgiOutputReady() { return _cgiOutputReady; };
 		bool		getCgiLaunched() { return _cgiLaunched; };
+
 		// Setters
 		void	setCgiOutputReady(bool status) { _cgiOutputReady = status; };
 		void	setCgiLaunched(bool status) { _cgiLaunched = status; };
+
 		// Debug
 		void	printCgiHandler();
 

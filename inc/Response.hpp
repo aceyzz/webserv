@@ -29,6 +29,8 @@ class	Response
 		bool								_streamer;
 		std::ifstream						*_fileStream;
 
+		std::string							_cookie;
+
 	public:
 
 		eResponseStatus						_status;
@@ -51,6 +53,7 @@ class	Response
 		std::string							getStatusMessage() const { return (_statusMessage); };
 		Socket*								getClientSocket() const { return (_clientSocket); };
 		CgiHandler*							getCgiHandler() const { return (_cgiHandler); };
+		std::string							getCookie() const { return (_cookie); };
 
 		void	setResultResponse(std::string resultResponse) { _resultResponse = resultResponse; };
 
@@ -75,6 +78,9 @@ class	Response
 		bool	isAllowedMethod(const std::string &method, Route *route);
 		bool	handleRequestTooLarge();
 		bool	handleUriTooLarge(const std::string &uri);
+
+		// Cookies
+		void	generateAndSetCookie();
 
 		// Debug
 		void	printResponse();

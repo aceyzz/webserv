@@ -17,6 +17,7 @@ Response::Response(Request* request, Config* config, Socket* clientSocket, int k
 	_cgiHandler = NULL;
 	_streamer = false;
 	_fileStream = NULL;
+	_cookie = "";
 }
 
 Response::~Response()
@@ -95,12 +96,22 @@ void	Response::buildErrorPage(int errorCode)
 
 void	Response::formatResponseToStr()
 {
+	// Construction de la première ligne de la réponse
 	_resultResponse = HTTP_VERSION;
 	_resultResponse += " ";
 	_resultResponse += std::to_string(_HTTPcode);
 	_resultResponse += " ";
 	_resultResponse += _statusMessage;
 	_resultResponse += "\r\n";
+
+	// Ajout du cookie si présent
+	std::string cookie = _request->getHeaders()["Cookie"];
+	if (cookie.empty())
+		generateAndSetCookie();
+	else
+		_headers["Cookie"] = cookie;
+
+	// Ajout des autres headers
 	for (std::map<std::string, std::string>::iterator it = _headers.begin(); it != _headers.end(); it++)
 	{
 		_resultResponse += it->first;
@@ -109,6 +120,8 @@ void	Response::formatResponseToStr()
 		_resultResponse += "\r\n";
 	}
 	_resultResponse += "\r\n";
+
+	// Ajout du body
 	_resultResponse += _body;
 	_currentChunkOffset = 0;
 }
@@ -184,6 +197,12 @@ int		Response::isFileOrDir(const std::string &str)
 
 void	Response::interpretRequest()
 {
+	// Check si Cookie présent, sinon ajout au headers
+	if (_request->getHeaders().find("Cookie") == _request->getHeaders().end())
+		generateAndSetCookie();
+	else
+		_headers["Cookie"] = _request->getHeaders()["Cookie"];
+
 	std::string method = _request->getMethod();
 	std::string uri = _request->getUri();
 
@@ -415,4 +434,18 @@ void	Response::sendResponse()
 		_status = WRITING;
 	else
 		_status = SENT;
+}
+
+void	Response::generateAndSetCookie()
+{
+	// Generer une string aleatoire de COOKIE_SIZE caracteres pour la valeur du cookie
+	std::string	chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	std::string	cookieValue;
+	int			size = COOKIE_SIZE;
+
+	for (int i = 0; i < size; i++)
+		cookieValue += chars[rand() % chars.size()];
+	// Creer le cookie et l'ajouter aux headers avec le max-age COOKIE_AGE
+	_cookie = "sessionId=" + cookieValue + "_cookie; Max-age=" + COOKIE_AGE;
+	_headers["Set-Cookie"] = _cookie;
 }
