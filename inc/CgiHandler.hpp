@@ -21,6 +21,7 @@ class	CgiHandler
 
 		bool		_cgiOutputReady;
 		bool		_cgiLaunched;
+		bool		_cgiError;
 
 		pid_t		_cgiPid;
 
@@ -60,6 +61,9 @@ class	CgiHandler
 		// Utils
 		std::string	extractContentTypeCgiOutput();
 
+		// Multipart
 		bool	isMultipart();
 		void	extractMultipartData();
+		void	checkMultipleFiles();
+		void	checkFormUrlEncoded();
 };

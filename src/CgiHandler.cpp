@@ -16,6 +16,7 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	_cgiOutputReady = false;
 	_bytesWritten = 0;
 	_cgiLaunched = false;
+	_cgiError = false;
 	_cgiPid = -1;
 	_uploadFilename = "";
 
@@ -23,8 +24,15 @@ CgiHandler::CgiHandler(Route* route, Request* request, Response* response, Confi
 	initEnvp();
 	initPipe();
 
+	// Rejeter les requetes de fichiers en application/x-www-form-urlencoded
+	checkFormUrlEncoded();
+
+	// PArse et check validité du multipart
 	if (isMultipart())
+	{
+		checkMultipleFiles();
 		extractMultipartData();
+	}
 }
 
 void	CgiHandler::initEnvp()
@@ -179,10 +187,18 @@ void	CgiHandler::handleCgi()
 	if (DEBUG)
 	{
 		printCgiHandler();
-		std::cout << CYAN "Body sent into the pipe: " RST << std::endl << _request->getBody() << std::endl;
+		// std::cout << CYAN "Body sent into the pipe: " RST << std::endl << _request->getBody() << std::endl;
 	}
 
 	_response->setStatus(BUILDING);
+
+	if (_cgiError)
+	{
+		_response->buildErrorPage(403);
+		_response->setStatus(READY);
+		_response->formatResponseToStr();
+		return;
+	}
 
 	// Si CGI n'est pas encore lancé, premier appel donc init + fork + execve
 	if (!_cgiLaunched)
@@ -328,7 +344,10 @@ void	CgiHandler::handleCgi()
 		if (_cgiOutputReady)
 		{
 			std::cout << CLRALL << std::endl;
-			_response->_headers["Content-Type"] = extractContentTypeCgiOutput();
+			std::string contentType = extractContentTypeCgiOutput();
+			if (contentType.empty())
+				contentType = "text/html";
+			_response->_headers["Content-Type"] = contentType;
 			_response->_body = getCgiOutputResult();
 			_response->_headers["Content-Length"] = std::to_string(_response->_body.size());
 			
@@ -482,4 +501,35 @@ void	CgiHandler::extractMultipartData()
 	for (size_t i = 0; i < newEnvs.size(); i++)
 		_envp[i] = strdup(newEnvs[i].c_str());
 	_envp[newEnvs.size()] = NULL;
+}
+
+void	CgiHandler::checkMultipleFiles()
+{
+	// Checker si le body contient plusieurs fichiers Multipart
+	std::string	body = _request->getBody();
+	std::string	contentType = _request->getHeaders()["Content-Type"];
+	size_t boundaryPos = contentType.find("boundary=");
+	std::string boundary = "--" + contentType.substr(boundaryPos + 9);
+
+	size_t boundaryCount = 0;
+	size_t pos = 0;
+	while ((pos = body.find(boundary, pos)) != std::string::npos)
+	{
+		boundaryCount++;
+		pos += boundary.length();
+	}
+	if (boundaryCount > 2)
+	{
+		std::cerr << GOLD "[Warning] " RST << "Plusieurs fichiers détectés." << std::endl;
+		_cgiError = true;
+	}
+}
+
+void	CgiHandler::checkFormUrlEncoded()
+{
+	if (_request->getHeaders()["Content-Type"] == "application/x-www-form-urlencoded")
+	{
+		std::cerr << GOLD "[Warning] " RST << "Requête de fichier en application/x-www-form-urlencoded non autorisée." << std::endl;
+		_cgiError = true;
+	}
 }
