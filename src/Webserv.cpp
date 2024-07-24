@@ -304,6 +304,12 @@ bool	Webserver::receiveRequest(int clientFD)
 				catch (const std::exception& e) { std::cout << "Failed to parse Content-Length: " << e.what() << std::endl; }
 			}
 		}
+		if (headers.find("Expect: 100-continue") != std::string::npos && !request->getContinueSent())
+		{
+			sendContinueResponse(clientFD);
+			request->setContinueSent(true);
+			return (false);
+		}
 	}
 
 	if (DEBUG)
@@ -396,13 +402,6 @@ void	Webserver::parseAndHandleRequest(int fd)
 
 	if (DEBUG)
 		request->printRequest();
-
-	if (request->expectsContinue() && request->getStatus() != CONTINUE)
-	{
-		sendContinueResponse(fd);
-		request->setStatus(CONTINUE);
-		return;
-	}
 
 	// Supprimer le descripteur de fichier des événements de lecture
 	struct kevent removeEvent;

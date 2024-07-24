@@ -26,8 +26,10 @@ class	Request
 		RequestStatus						_status;
 		size_t								_bodySize;
 
+		bool								_continueSent;
+
 	public:
-		Request(int fd, std::string clientIp) : _fd(fd), _clientIp(clientIp), _status(RECEIVING), _bodySize(0) {};
+		Request(int fd, std::string clientIp) : _fd(fd), _clientIp(clientIp), _status(RECEIVING), _bodySize(0), _continueSent(false) {};
 		~Request() { _headers.clear(); };
 
 		// Partie 1 : Parsing Orchestral
@@ -50,12 +52,14 @@ class	Request
 		std::time_t							getTimestamp() const { return (_timestamp); };
 		RequestStatus						getStatus() const { return (_status); };
 		size_t								getBodySize() const { return (_bodySize); };
+		bool								getContinueSent() const { return (_continueSent); };
 
 		// Setters
 		void	setStatus(RequestStatus status) { _status = status; };
 		void	setUri(std::string uri) { _uri = uri; };
 		void	setBody(std::string body) { _body = body; };
 		void	setRawRequest(std::string rawRequest) { _rawRequest = rawRequest; };
+		void	setContinueSent(bool continueSent) { _continueSent = continueSent; };
 
 		// Utils
 		void	appendRawRequest(std::string rawRequest) { _rawRequest.append(rawRequest); };
