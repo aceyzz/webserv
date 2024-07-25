@@ -205,6 +205,7 @@ void	Webserver::runServer()
 {
 	std::cout << CLRALL;
 	std::cout << LIME "Server is running..." RST << std::endl;
+	// Print les liens des servers disponibles
 	std::cout << GRY1 "Press Ctrl+C or Ctrl+\\ to stop the server" RST << std::endl;
 	while (g_signal)
 	{
