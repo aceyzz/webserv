@@ -528,7 +528,7 @@ void	CgiHandler::checkMultipleFiles()
 
 void	CgiHandler::checkFormUrlEncoded()
 {
-	if (_request->getHeaders()["Content-Type"] == "application/x-www-form-urlencoded")
+	if (_request->getHeaders()["Content-Type"] == "application/x-www-form-urlencoded" && _request->getUri() != "/cgi-bin/calculator.py")
 	{
 		std::cerr << GOLD "[Warning] " RST << "Requête de fichier en application/x-www-form-urlencoded non autorisée." << std::endl;
 		_cgiError = true;
