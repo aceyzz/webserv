@@ -204,9 +204,7 @@ void	Webserver::initServer()
 void	Webserver::runServer()
 {
 	std::cout << CLRALL;
-	std::cout << LIME "Server is running..." RST << std::endl;
-	// Print les liens des servers disponibles
-	std::cout << GRY1 "Press Ctrl+C or Ctrl+\\ to stop the server" RST << std::endl;
+	printIntro();
 	while (g_signal)
 	{
 		// Creation du vecteur d'evenements
@@ -560,4 +558,20 @@ std::string	Webserver::buildLogMessage(int fd, LogType type)
 			break;
 	}
 	return (message);
+}
+
+void	Webserver::printIntro()
+{
+	std::cout << LIME "List of servers :" RST << std::endl;
+	// Print les liens des servers disponibles
+	for (uint i = 0; i < _configs.size(); i++)
+	{
+		Config* config = _configs[i];
+		std::string color = (i % 2 == 0) ? CYAN : BLUE;
+		std::cout << std::endl << GRY2 << "Server [" << i + 1 << "]" RST << std::endl;
+		for (size_t j = 0; j < config->getPort().size(); j++)
+			std::cout << color << "http://" << config->getName() << ":" << config->getPort()[j] << RST << std::endl;
+	}
+	std::cout << std::endl;
+	std::cout << GRY1 "Press Ctrl+C or Ctrl+\\ to stop the server" RST << std::endl;
 }

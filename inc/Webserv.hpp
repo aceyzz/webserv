@@ -89,9 +89,8 @@ class	Webserver
 		void	printConfigs();
 		void	printSockets();
 		void	printConfigByPort();
+		void	printIntro();
 
 		// Logger
 		std::string	buildLogMessage(int fd, LogType type);
-
-		bool	isClientConnected(int clientFd);
 };

@@ -24,10 +24,10 @@ inline void	signalHandler(int signum)
 	switch (signum)
 	{
 		case SIGINT:
-			signal = "ctrl-c";
+			signal = "Ctrl+C";
 			break;
 		case SIGQUIT:
-			signal = "ctrl-\\";
+			signal = "ctrl+\\";
 			break;
 		case SIGTERM:
 			signal = "kill";
@@ -56,7 +56,8 @@ int	main(int argc, char **argv)
 {
 	if (argc == 1)
 	{
-		char *config = (char *)"config/default.conf";
+		createDefaultConfig();
+		char *config = (char *)DEF_CONF_FILENAME;
 		argv[1] = config;
 	}
 	else if (argc != 2)
@@ -83,7 +84,6 @@ int	main(int argc, char **argv)
 	}
 	catch (std::exception &e) { return (errorReturn("execption", e.what())); }
 
-	std::cout << CYAN "Server stopped proprely. Good bye !" RST << std::endl << std::endl;
-
+	std::cout << LIME "Server stopped proprely. Good bye !" RST << std::endl << std::endl;
 	return (0);
 }

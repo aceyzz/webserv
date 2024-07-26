@@ -1,5 +1,30 @@
 #include "utils.hpp"
 
+void	createDefaultConfig()
+{
+	char	*filename = (char *)DEF_CONF_FILENAME;
+
+	// Check si le fichier de config par defaut existe deja, si c'est le cas on le supprime
+	if (std::ifstream(filename))
+		std::remove(filename);
+
+	// On cree le fichier de config par defaut en dur
+	std::ofstream	file(filename);
+	file << "server {" << std::endl;
+	file << "    listen 4242;" << std::endl;
+	file << "    name localhost;" << std::endl;
+	file << "    root www/server2;" << std::endl;
+	file << "    index index.html;" << std::endl;
+	file << "    max_body_size 3000000;" << std::endl;
+	file << "    listing off;" << std::endl;
+	file << "" << std::endl;
+	file << "    location / {" << std::endl;
+	file << "        methods GET;" << std::endl;
+	file << "    }" << std::endl;
+	file << "}" << std::endl;
+	file.close();
+}
+
 std::string	strToHtml(std::string content)
 {
 	std::string	html;

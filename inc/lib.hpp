@@ -48,3 +48,4 @@
 #define CGI_TIMEOUT 7
 #define COOKIE_SIZE 32
 #define COOKIE_AGE "3600" // 1 heure
+#define DEF_CONF_FILENAME "config/default.conf"
