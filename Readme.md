@@ -54,12 +54,6 @@ make
 
 <br>
 
-## Résultat
-
-> (grading in progress)
-
-<br>
-
 ## License
 
 Ce projet est sous licence MIT - voir le fichier [LICENSE](license.md) pour plus de détails.
