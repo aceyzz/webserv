@@ -1,11 +1,6 @@
 # Documentations
 
-## Description
-
-Webserv est un serveur web qui implémente les méthodes HTTP GET et POST. Il est capable de servir des fichiers statiques et de gérer des requêtes CGI. Il est capable de gérer plusieurs connexions simultanées et de gérer des fichiers volumineux, de manière asynchrone et non-bloquante.
-
 ## Liens vers les documentations
-
 
 ### Documentations officielles
 
